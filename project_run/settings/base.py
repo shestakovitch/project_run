@@ -114,3 +114,7 @@ STATIC_ROOT = 'static'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+COMPANY_NAME = 'Run ForREST Run!'
+SLOGAN = 'From the couch to the finish line — together!'
+CONTACTS = 'Trchanje street 94/19, Belgrade'
