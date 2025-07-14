@@ -20,14 +20,13 @@ class RunViewSet(viewsets.ModelViewSet):
     serializer_class = RunSerializer
 
 
-class UserViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()
+class UserViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = UserSerializer
 
     def get_queryset(self):
-        qs = self.queryset.filter(is_superuser=False)
-
+        qs = User.objects.filter(is_superuser=False)
         user_type = self.request.query_params.get('type')
+
         if user_type == 'coach':
             qs = qs.filter(is_staff=True)
         elif user_type == 'athlete':
