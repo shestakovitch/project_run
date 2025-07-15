@@ -7,7 +7,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id', 'date_joined', 'username', 'last_name', 'first_name', 'type']
+        fields = ['id', 'username', 'last_name', 'first_name']
 
     def get_type(self, obj):
         return 'coach' if obj.is_staff else 'athlete'
@@ -18,4 +18,4 @@ class RunSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Run
-        fields = ['id', 'username', 'last_name', 'first_name']
+        fields = ['athlete_data']
