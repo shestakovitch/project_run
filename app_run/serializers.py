@@ -4,6 +4,7 @@ from .models import Run, User
 
 class UserSerializer(serializers.ModelSerializer):
     type = serializers.SerializerMethodField()
+    runs_finished = serializers.SerializerMethodField()
 
     class Meta:
         model = User
