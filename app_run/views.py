@@ -43,10 +43,10 @@ class RunViewSet(viewsets.ModelViewSet):
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = UserSerializer
     filter_backends = [SearchFilter, OrderingFilter]  # Подключаем SearchFilter здесь
-    pagination_class = UserPagination
+    pagination_class = UserPagination # Указываем пагинацию
 
     search_fields = ['first_name', 'last_name']  # Поля по котором будет производиться поиск
-    ordering_fields = ['date_joined']
+    ordering_fields = ['date_joined'] # Поля по которым будет возможна сортировка
 
     def get_queryset(self):
         qs = User.objects.filter(is_superuser=False)
