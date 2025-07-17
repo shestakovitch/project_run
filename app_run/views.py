@@ -21,6 +21,10 @@ def company_details(request):
     return Response(details)
 
 
+class UserPagination(PageNumberPagination):
+    page_size_query_param = 'size'  # Разрешаем изменять количество объектов через query параметр size в url
+
+
 class RunPagination(PageNumberPagination):
     page_size_query_param = 'size'  # Разрешаем изменять количество объектов через query параметр size в url
 
@@ -38,8 +42,11 @@ class RunViewSet(viewsets.ModelViewSet):
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = UserSerializer
-    filter_backends = [SearchFilter]  # Подключаем SearchFilter здесь
+    filter_backends = [SearchFilter, OrderingFilter]  # Подключаем SearchFilter здесь
+    pagination_class = UserPagination
+
     search_fields = ['first_name', 'last_name']  # Поля по котором будет производиться поиск
+    ordering_fields = ['date_joined']
 
     def get_queryset(self):
         qs = User.objects.filter(is_superuser=False)
