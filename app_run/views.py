@@ -21,19 +21,25 @@ def company_details(request):
     return Response(details)
 
 
+class RunPagination(PageNumberPagination):
+    page_size_query_param = 'size'  # Разрешаем изменять количество объектов через query параметр size в url
+
+
 class RunViewSet(viewsets.ModelViewSet):
     queryset = Run.objects.select_related('athlete').all()
     serializer_class = RunSerializer
     filter_backends = [DjangoFilterBackend,
                        OrderingFilter]  # Указываем какой класс будет использоваться для фильтра и сортировки
+    pagination_class = RunPagination  # Указываем пагинацию
+
     filterset_fields = ['status', 'athlete']  # Поля, по которым будет происходить фильтрация
-    ordering_fields = ['created_at'] # Поля по которым будет возможна сортировка
+    ordering_fields = ['created_at']  # Поля по которым будет возможна сортировка
 
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = UserSerializer
     filter_backends = [SearchFilter]  # Подключаем SearchFilter здесь
-    search_fields = ['first_name', 'last_name']
+    search_fields = ['first_name', 'last_name']  # Поля по котором будет производиться поиск
 
     def get_queryset(self):
         qs = User.objects.filter(is_superuser=False)
@@ -69,7 +75,3 @@ class StopRunAPIView(APIView):
         run.status = 'finished'
         run.save()
         return Response(RunSerializer(run).data, status=status.HTTP_200_OK)
-
-
-class RunPagination(PageNumberPagination):
-    page_size_query_param = 'size' # Разрешаем изменять количество объектов через query параметр size в url
