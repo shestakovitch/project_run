@@ -1,9 +1,11 @@
 from rest_framework import viewsets, status
-from rest_framework.filters import SearchFilter
+from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from rest_framework.pagination import PageNumberPagination
 from django.conf import settings
 from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.views import APIView
 
 from .models import Run, User
@@ -22,6 +24,10 @@ def company_details(request):
 class RunViewSet(viewsets.ModelViewSet):
     queryset = Run.objects.select_related('athlete').all()
     serializer_class = RunSerializer
+    filter_backends = [DjangoFilterBackend,
+                       OrderingFilter]  # Указываем какой класс будет использоваться для фильтра и сортировки
+    filterset_fields = ['status', 'athlete']  # Поля, по которым будет происходить фильтрация
+    ordering_fields = ['created_at'] # Поля по которым будет возможна сортировка
 
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
@@ -63,3 +69,7 @@ class StopRunAPIView(APIView):
         run.status = 'finished'
         run.save()
         return Response(RunSerializer(run).data, status=status.HTTP_200_OK)
+
+
+class RunPagination(PageNumberPagination):
+    page_size_query_param = 'size' # Разрешаем изменять количество объектов через query параметр size в url
