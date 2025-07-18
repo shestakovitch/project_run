@@ -125,4 +125,4 @@ class ChallengeAPIView(APIView):
         else:
             challenges = Challenge.objects.all()
 
-        return Response(ChallengeSerializer(challenges).data, status=status.HTTP_200_OK)
+        return Response(ChallengeSerializer(challenges, many=True).data, status=status.HTTP_200_OK)
