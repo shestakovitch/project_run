@@ -1,3 +1,4 @@
+from django.core.serializers import serialize
 from rest_framework import viewsets, status
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.decorators import api_view
@@ -8,8 +9,8 @@ from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.views import APIView
 
-from .models import Run, User
-from .serializers import RunSerializer, UserSerializer
+from .models import Run, User, AthleteInfo
+from .serializers import RunSerializer, UserSerializer, AthleteInfoSerializer
 
 
 @api_view(['GET'])
@@ -43,10 +44,10 @@ class RunViewSet(viewsets.ModelViewSet):
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = UserSerializer
     filter_backends = [SearchFilter, OrderingFilter]  # Подключаем SearchFilter здесь
-    pagination_class = UserPagination # Указываем пагинацию
+    pagination_class = UserPagination  # Указываем пагинацию
 
     search_fields = ['first_name', 'last_name']  # Поля по котором будет производиться поиск
-    ordering_fields = ['date_joined'] # Поля по которым будет возможна сортировка
+    ordering_fields = ['date_joined']  # Поля по которым будет возможна сортировка
 
     def get_queryset(self):
         qs = User.objects.filter(is_superuser=False)
@@ -82,3 +83,28 @@ class StopRunAPIView(APIView):
         run.status = 'finished'
         run.save()
         return Response(RunSerializer(run).data, status=status.HTTP_200_OK)
+
+
+class AthleteInfoAPIView(APIView):
+    def get(self, request, user_id):
+        user = get_object_or_404(User, id=user_id)
+        athlete_info, created = AthleteInfo.objects.get_or_create(user=user)
+
+        return Response(AthleteInfoSerializer(athlete_info).data, status=status.HTTP_200_OK)
+
+    def post(self, request, user_id):
+        user = get_object_or_404(User, id=user_id)
+        data = request.data.copy()
+        data['user'] = user.id
+
+        try:
+            weight = float(data.get('weight'))
+            if weight <= 0 or weight >= 900:
+                return Response(status=status.HTTP_400_BAD_REQUEST)
+        except(TypeError, ValueError):
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        athlete_info, created = AthleteInfo.objects.update_or_create(user=user, defaults={'weight': data.get('weight'),
+                                                                                          'goals': data.get('goals')})
+
+        return Response(AthleteInfoSerializer(athlete_info).data, status=status.HTTP_201_CREATED)

@@ -12,3 +12,9 @@ class Run(models.Model):
                       ('finished', 'Finished')
                       ]
     status = models.CharField(max_length=20, choices=status_choices, default='init')
+
+
+class AthleteInfo(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='user_id')
+    weight = models.PositiveIntegerField(null=True, blank=True)
+    goals = models.TextField(null=True, blank=True)
