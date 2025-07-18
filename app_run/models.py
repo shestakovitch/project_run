@@ -15,6 +15,11 @@ class Run(models.Model):
 
 
 class AthleteInfo(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='user_id')
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
     weight = models.PositiveIntegerField(null=True, blank=True)
     goals = models.TextField(null=True, blank=True)
+
+
+class Challenge(models.Model):
+    athlete = models.ForeignKey(User, on_delete=models.CASCADE)
+    full_name = models.CharField(max_length=255)
