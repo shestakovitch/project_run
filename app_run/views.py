@@ -10,8 +10,8 @@ from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.views import APIView
 
-from .models import Run, User, AthleteInfo, Challenge
-from .serializers import RunSerializer, UserSerializer, AthleteInfoSerializer, ChallengeSerializer
+from .models import Run, User, AthleteInfo, Challenge, Position
+from .serializers import RunSerializer, UserSerializer, AthleteInfoSerializer, ChallengeSerializer, PositionSerializer
 
 
 @api_view(['GET'])
@@ -126,3 +126,15 @@ class ChallengeAPIView(APIView):
             challenges = Challenge.objects.all()
 
         return Response(ChallengeSerializer(challenges, many=True).data, status=status.HTTP_200_OK)
+
+
+class PositionViewSet(viewsets.ModelViewSet):
+    queryset = Position.objects.all()
+    serializer_class = PositionSerializer
+
+    def get_queryset(self):
+        run_id = self.request.query_params.get('run')
+        if run_id:
+            return self.queryset.filter(run_id=run_id)
+
+        return self.queryset

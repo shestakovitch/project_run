@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Run, User, AthleteInfo, Challenge
+from .models import Run, User, AthleteInfo, Challenge, Position
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -43,3 +43,25 @@ class ChallengeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Challenge
         fields = ['athlete', 'full_name']
+
+
+class PositionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Position
+        fields = ['id', 'run', 'latitude', 'longitude']
+
+    def validate_run(self, run):
+        if run.status != 'in_progress':
+            raise serializers.ValidationError('Run must be in progress!')
+
+    def validate_latitude(self, latitude):
+        if not -90.0 <= latitude <= 90.0:
+            raise serializers.ValidationError('Latitude must be between -90.0 and 90.0!')
+
+        return round(latitude, 4)
+
+    def validate_longitude(self, longitude):
+        if not -180.0 <= longitude <= 180.0:
+            raise serializers.ValidationError('Longitude must be between -180.0 and 180.0!')
+
+        return round(longitude, 4)
