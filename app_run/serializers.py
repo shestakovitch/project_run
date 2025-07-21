@@ -54,6 +54,8 @@ class PositionSerializer(serializers.ModelSerializer):
         if run.status != 'in_progress':
             raise serializers.ValidationError('Run must be in progress!')
 
+        return run
+
     def validate_latitude(self, latitude):
         if not -90.0 <= latitude <= 90.0:
             raise serializers.ValidationError('Latitude must be between -90.0 and 90.0!')
