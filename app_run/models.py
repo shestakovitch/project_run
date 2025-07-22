@@ -12,6 +12,7 @@ class Run(models.Model):
                       ('finished', 'Finished')
                       ]
     status = models.CharField(max_length=20, choices=status_choices, default='init')
+    distance = models.FloatField(null=True, blank=True)
 
 
 class AthleteInfo(models.Model):

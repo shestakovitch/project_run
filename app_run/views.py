@@ -9,6 +9,7 @@ from django.conf import settings
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.views import APIView
+from geopy.distance import geodesic
 
 from .models import Run, User, AthleteInfo, Challenge, Position
 from .serializers import RunSerializer, UserSerializer, AthleteInfoSerializer, ChallengeSerializer, PositionSerializer
@@ -81,6 +82,14 @@ class StopRunAPIView(APIView):
         if run.status in ('init', 'finished'):
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
+        positions = Position.objects.filter(run=run).order_by('created_at').value_list('latitude', 'longitude')
+        total_distance = 0.0
+
+        if len(positions) >= 2:
+            for i in range(1, len(positions)):
+                total_distance += geodesic(positions[i - 1], positions[i]).km
+
+        run.distance = round(total_distance, 2)
         run.status = 'finished'
         run.save()
 
