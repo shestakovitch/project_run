@@ -82,7 +82,7 @@ class StopRunAPIView(APIView):
         if run.status in ('init', 'finished'):
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
-        positions = Position.objects.filter(run=run).order_by('created_at').value_list('latitude', 'longitude')
+        positions = Position.objects.filter(run=run).value_list('latitude', 'longitude')
         total_distance = 0.0
 
         if len(positions) >= 2:
