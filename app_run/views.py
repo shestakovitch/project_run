@@ -181,7 +181,6 @@ class UploadFileView(APIView):
         #     return Response({'error': 'Wrong headers'}, status=400)
 
         invalid_rows = []
-        created_count = 0
 
         for row in sheet.iter_rows(min_row=2, values_only=True):
             data = {
@@ -195,11 +194,7 @@ class UploadFileView(APIView):
             serializer = CollectibleItemSerializer(data=data)
             if serializer.is_valid():
                 serializer.save()
-                created_count += 1
             else:
                 invalid_rows.append(list(row))
 
-        return Response({
-            'created': created_count,
-            'invalid_rows': invalid_rows
-        }, status=200)
+        return Response(invalid_rows, status=200)
