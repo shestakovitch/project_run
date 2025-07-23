@@ -178,7 +178,7 @@ class UploadFileView(APIView):
         headers = [cell.value for cell in sheet[1]]
         expected_headers = ['Name', 'UID', 'Value', 'Latitude', 'Longitude', 'URL']
         if headers != expected_headers:
-            return Response({'error': 'Неверные заголовки в таблице'}, status=400)
+            return Response({'error': 'Wrong headers'}, status=400)
 
         invalid_rows = []
         created_count = 0
