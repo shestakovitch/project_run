@@ -175,7 +175,7 @@ class UploadFileView(APIView):
         wb = openpyxl.load_workbook(upload_file)
         sheet = wb.active
 
-        headers = [cell.value for cell in sheet[1]]
+        headers = [str(cell.value).strip() for cell in sheet[1]]
         expected_headers = ['Name', 'UID', 'Value', 'Latitude', 'Longitude', 'URL']
         if headers != expected_headers:
             return Response({'error': 'Wrong headers'}, status=400)
