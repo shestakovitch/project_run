@@ -35,6 +35,6 @@ urlpatterns = [
     path('api/runs/<int:run_id>/stop/', StopRunAPIView.as_view()),
     path('api/athlete_info/<int:user_id>/', AthleteInfoAPIView.as_view()),
     path('api/challenges/', ChallengeAPIView.as_view()),
-    path('api/upload_file', UploadFileView.as_view()),
+    path('api/upload_file/', UploadFileView.as_view()),
     path('', include(router.urls)),  # Всегда последний!
 ]
