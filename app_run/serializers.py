@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Run, User, AthleteInfo, Challenge, Position
+from .models import Run, User, AthleteInfo, Challenge, Position, CollectibleItem
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -67,3 +67,9 @@ class PositionSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('Longitude must be between -180.0 and 180.0!')
 
         return round(longitude, 4)
+
+
+class CollectibleItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CollectibleItem
+        fields = '__all__'

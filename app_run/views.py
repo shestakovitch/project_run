@@ -11,9 +11,11 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.views import APIView
 from geopy.distance import geodesic
 from django.db.models import Sum
+import openpyxl
 
-from .models import Run, User, AthleteInfo, Challenge, Position
-from .serializers import RunSerializer, UserSerializer, AthleteInfoSerializer, ChallengeSerializer, PositionSerializer
+from .models import Run, User, AthleteInfo, Challenge, Position, CollectibleItem
+from .serializers import RunSerializer, UserSerializer, AthleteInfoSerializer, ChallengeSerializer, PositionSerializer, \
+    CollectibleItemSerializer
 
 
 @api_view(['GET'])
@@ -136,6 +138,7 @@ class AthleteInfoAPIView(APIView):
 class ChallengeAPIView(APIView):
     def get(self, request):
         athlete_id = request.query_params.get('athlete')
+
         if athlete_id:
             challenges = Challenge.objects.filter(athlete_id=athlete_id)
         else:
@@ -150,7 +153,53 @@ class PositionViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         run_id = self.request.query_params.get('run')
+
         if run_id:
             return self.queryset.filter(run_id=run_id)
 
         return self.queryset
+
+
+class CollectibleItemViewSet(viewsets.ModelViewSet):
+    queryset = CollectibleItem.objects.all()
+    serializer_class = CollectibleItemSerializer
+
+
+class UploadFileView(APIView):
+    def post(self, request):
+        upload_file = request.FILES.get('file')
+
+        if not upload_file or not upload_file.name.endswith('xlsx'):
+            return Response({'error': 'File should be .xlsx'}, status=400)
+
+        wb = openpyxl.load_workbook(upload_file)
+        sheet = wb.active
+
+        headers = [cell.value for cell in sheet[1]]
+        expected_headers = ['Name', 'UID', 'Value', 'Latitude', 'Longitude', 'URL']
+        if headers != expected_headers:
+            return Response({'error': 'Неверные заголовки в таблице'}, status=400)
+
+        invalid_rows = []
+        created_count = 0
+
+        for row in sheet.iter_rows(min_row=2, values_only=True):
+            data = {
+                'name': row[0],
+                'uid': row[1],
+                'value': row[2],
+                'latitude': row[3],
+                'longitude': row[4],
+                'picture': row[5],
+            }
+            serializer = CollectibleItemSerializer(data=data)
+            if serializer.is_valid():
+                serializer.save()
+                created_count += 1
+            else:
+                invalid_rows.append(list(row))
+
+        return Response({
+            'created': created_count,
+            'invalid_rows': invalid_rows
+        }, status=200)
