@@ -175,11 +175,6 @@ class UploadFileView(APIView):
         wb = openpyxl.load_workbook(upload_file)
         sheet = wb.active
 
-        # headers = [str(cell.value).strip() for cell in sheet[1]]
-        # expected_headers = ['Name', 'UID', 'Value', 'Latitude', 'Longitude', 'URL']
-        # if headers != expected_headers:
-        #     return Response({'error': 'Wrong headers'}, status=400)
-
         invalid_rows = []
 
         for row in sheet.iter_rows(min_row=2, values_only=True):
@@ -191,6 +186,7 @@ class UploadFileView(APIView):
                 'longitude': row[4],
                 'picture': row[5],
             }
+
             serializer = CollectibleItemSerializer(data=data)
             if serializer.is_valid():
                 serializer.save()

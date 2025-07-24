@@ -28,7 +28,7 @@ class RunSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Run
-        fields = '__all__'
+        fields = ['created_at', 'comment', 'athlete', 'status', 'distance']
 
 
 class AthleteInfoSerializer(serializers.ModelSerializer):
@@ -72,4 +72,4 @@ class PositionSerializer(serializers.ModelSerializer):
 class CollectibleItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = CollectibleItem
-        fields = '__all__'
+        fields = ['name', 'uid', 'latitude','longitude', 'picture', 'value']
