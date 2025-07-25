@@ -205,11 +205,14 @@ class UploadFileView(APIView):
             CollectibleItem.objects.values_list('name', 'uid')
         )
 
+        # Для отслеживания дубликатов внутри файла
+        file_items = set()
+
         for row in sheet.iter_rows(min_row=2, values_only=True):
             name, uid, value, latitude, longitude, picture = row
 
-            # Проверяем на дубликаты (name, uid)
-            if (name, uid) in existing_items:
+            # Проверяем на дубликаты (name, uid) в базе и в файле
+            if (name, uid) in existing_items or (name, uid) in file_items:
                 invalid_rows.append(list(row))
                 continue
 
@@ -225,8 +228,9 @@ class UploadFileView(APIView):
             serializer = CollectibleItemSerializer(data=data)
             if serializer.is_valid():
                 serializer.save()
-                # Добавляем в множество, чтобы не загружать дубликаты из файла
+                # Добавляем в множества, чтобы не загружать дубликаты из файла
                 existing_items.add((name, uid))
+                file_items.add((name, uid))
             else:
                 invalid_rows.append(list(row))
 
