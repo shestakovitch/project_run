@@ -47,9 +47,8 @@ class RunViewSet(viewsets.ModelViewSet):
     ordering_fields = ['created_at']  # Поля по которым будет возможна сортировка
 
     def perform_create(self, serializer):
-        if not self.request.user.is_authenticated:
-            raise PermissionDenied("You must be authenticated!")
-        serializer.save(athlete=self.request.user)
+        # Больше не проверяем авторизацию, просто сохраняем
+        serializer.save()
 
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
