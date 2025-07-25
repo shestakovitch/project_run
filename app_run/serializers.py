@@ -74,7 +74,7 @@ class PositionSerializer(serializers.ModelSerializer):
 class CollectibleItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = CollectibleItem
-        fields = ['name', 'uid', 'latitude','longitude', 'picture', 'value']
+        fields = ['id', 'name', 'uid', 'latitude','longitude', 'picture', 'value']
 
 
 class UserDetailSerializer(UserSerializer): # Наследуемся от Базового сериализатора
