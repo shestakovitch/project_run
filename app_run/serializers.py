@@ -76,8 +76,8 @@ class CollectibleItemSerializer(serializers.ModelSerializer):
         fields = ['name', 'uid', 'latitude','longitude', 'picture', 'value']
 
 
-class UserDetailSerializer(UserSerializer):
-    items = CollectibleItemSerializer(source='collected_items', many=True)
+class UserDetailSerializer(UserSerializer): # Наследуемся от Базового сериализатора
+    items = CollectibleItemSerializer(source='collected_items', many=True) # Новое поле
 
-    class Meta:
-        fields = UserSerializer.Meta.fields + ['items']
+    class Meta(UserSerializer.Meta): # Наследуем настройки Meta из родительского сериализатора
+        fields = UserSerializer.Meta.fields + ['items'] # Так добавляются поля
