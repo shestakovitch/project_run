@@ -46,6 +46,11 @@ class RunViewSet(viewsets.ModelViewSet):
     filterset_fields = ['status', 'athlete']  # Поля, по которым будет происходить фильтрация
     ordering_fields = ['created_at']  # Поля по которым будет возможна сортировка
 
+    def perform_create(self, serializer):
+        # Если athlete не передан — подставляем текущего пользователя
+        athlete = self.request.user if self.request.user.is_authenticated else None
+        serializer.save(athlete=athlete)
+
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = UserSerializer
