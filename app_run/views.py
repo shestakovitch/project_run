@@ -198,24 +198,26 @@ class UploadFileView(APIView):
 
         invalid_rows = []
 
-        existing_items = set(CollectibleItem.objects.values_list('name', 'uid'))
+        # Получаем уже существующие пары (name, uid) для проверки дубликатов
+        existing_items = set(
+            CollectibleItem.objects.values_list('name', 'uid')
+        )
 
         for row in sheet.iter_rows(min_row=2, values_only=True):
-            name, uid = row[0], row[1]
+            name, uid, value, latitude, longitude, picture = row
 
-            # Проверяем на дубликат
+            # Проверяем на дубликаты (name, uid)
             if (name, uid) in existing_items:
                 invalid_rows.append(list(row))
                 continue
 
-
             data = {
-                'name': row[0],
-                'uid': row[1],
-                'value': row[2],
-                'latitude': row[3],
-                'longitude': row[4],
-                'picture': row[5],
+                'name': name,
+                'uid': uid,
+                'value': value,
+                'latitude': latitude,
+                'longitude': longitude,
+                'picture': picture,
             }
 
             serializer = CollectibleItemSerializer(data=data)
