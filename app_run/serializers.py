@@ -77,7 +77,7 @@ class CollectibleItemSerializer(serializers.ModelSerializer):
 
 
 class UserDetailSerializer(UserSerializer):
-    items = CollectibleItemSerializer(many=True)
+    items = CollectibleItemSerializer(source='collected_items', many=True)
 
     class Meta:
         fields = UserSerializer.Meta.fields + ['items']

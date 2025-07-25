@@ -67,9 +67,9 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
     
     def get_serializer_class(self):
         if self.action == 'retrieve':
-            return UserSerializer
+            return UserDetailSerializer
         
-        return UserDetailSerializer
+        return UserSerializer
 
 
 class StartRunAPIView(APIView):
