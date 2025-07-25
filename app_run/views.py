@@ -170,18 +170,6 @@ class PositionViewSet(viewsets.ModelViewSet):
 
         return self.queryset
 
-    def check_and_collect_items(position):
-        user = position.run.athlete
-        user_location = (position.latitude, position.longitude)
-        for item in CollectibleItem.objects.all():
-            item_location = (item.latitude, item.longitude)
-            if geodesic(user_location, item_location).meters <= 100:
-                item.collected_by.add(user)
-
-    def perform_create(self, serializer):
-        position = serializer.save()
-        self.check_and_collect_items(position)
-
 class CollectibleItemViewSet(viewsets.ModelViewSet):
     queryset = CollectibleItem.objects.all()
     serializer_class = CollectibleItemSerializer
