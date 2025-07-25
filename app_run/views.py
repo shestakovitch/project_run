@@ -1,3 +1,4 @@
+from turtle import position
 from django.contrib.auth import authenticate
 from django.core.serializers import serialize
 from rest_framework import viewsets, status
@@ -165,21 +166,17 @@ class PositionViewSet(viewsets.ModelViewSet):
 
         return self.queryset
 
+    def check_and_collect_items(position):
+        user = position.run.athlete
+        user_location = (position.latitude, position.longitude)
+        for item in CollectibleItem.objects.all():
+            item_location = (item.latitude, item.longitude)
+            if geodesic(user_location, item_location).meters <= 100:
+                item.collected_by.add(user)
+
     def perform_create(self, serializer):
         position = serializer.save()
-        user = position.run.athlete
-
-        items = CollectibleItem.objects.all()
-        user_location = (position.latitude, position.longitude)
-
-        for item in items:
-            item_location = (item.latitude, item.longitude)
-            distance = geodesic(user_location, item_location).meters
-
-            if distance <= 100:
-                if not item.collected_by.filter(id=user.id).exists():
-                    item.collected_by.add(user)
-
+        self.check_and_collect_items(position)
 
 class CollectibleItemViewSet(viewsets.ModelViewSet):
     queryset = CollectibleItem.objects.all()
