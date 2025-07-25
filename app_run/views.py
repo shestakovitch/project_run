@@ -15,7 +15,7 @@ import openpyxl
 
 from .models import Run, User, AthleteInfo, Challenge, Position, CollectibleItem
 from .serializers import RunSerializer, UserSerializer, AthleteInfoSerializer, ChallengeSerializer, PositionSerializer, \
-    CollectibleItemSerializer
+    CollectibleItemSerializer, UserDetailSerializer
 
 
 @api_view(['GET'])
@@ -64,6 +64,12 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
             qs = qs.filter(is_staff=False)
 
         return qs
+    
+    def get_serializer_class(self):
+        if self.action == 'retrieve':
+            return UserSerializer
+        
+        return UserDetailSerializer
 
 
 class StartRunAPIView(APIView):
@@ -158,6 +164,21 @@ class PositionViewSet(viewsets.ModelViewSet):
             return self.queryset.filter(run_id=run_id)
 
         return self.queryset
+
+    def perform_create(self, serializer):
+        position = serializer.save()
+        user = position.run.athlete
+
+        items = CollectibleItem.objects.all()
+        user_location = (position.latitude, position.longitude)
+
+        for item in items:
+            item_location = (item.latitude, item.longitude)
+            distance = geodesic(user_location, item_location).meters
+
+            if distance <= 100:
+                if not item.collected_by.filter(id=user.id).exists():
+                    item.collected_by.add(user)
 
 
 class CollectibleItemViewSet(viewsets.ModelViewSet):

@@ -1,3 +1,4 @@
+from dataclasses import field
 from rest_framework import serializers
 from .models import Run, User, AthleteInfo, Challenge, Position, CollectibleItem
 
@@ -73,3 +74,10 @@ class CollectibleItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = CollectibleItem
         fields = ['name', 'uid', 'latitude','longitude', 'picture', 'value']
+
+
+class UserDetailSerializer(UserSerializer):
+    items = CollectibleItemSerializer(source='athlete_item', many=True)
+
+    class Meta:
+        fields = UserSerializer.Meta.fields + ['items']
