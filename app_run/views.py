@@ -13,6 +13,7 @@ from rest_framework.views import APIView
 from geopy.distance import geodesic
 from django.db.models import Sum
 import openpyxl
+from rest_framework.exceptions import PermissionDenied
 
 from .models import Run, User, AthleteInfo, Challenge, Position, CollectibleItem
 from .serializers import RunSerializer, UserSerializer, AthleteInfoSerializer, ChallengeSerializer, PositionSerializer, \
@@ -47,9 +48,9 @@ class RunViewSet(viewsets.ModelViewSet):
     ordering_fields = ['created_at']  # Поля по которым будет возможна сортировка
 
     def perform_create(self, serializer):
-        # Если athlete не передан — подставляем текущего пользователя
-        athlete = self.request.user if self.request.user.is_authenticated else None
-        serializer.save(athlete=athlete)
+        if not self.request.user.is_authenticated:
+            raise PermissionDenied("You must be authenticated!")
+        serializer.save(athlete=self.request.user)
 
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
