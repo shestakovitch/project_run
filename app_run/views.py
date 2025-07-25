@@ -66,7 +66,7 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
         return qs
     
     def get_serializer_class(self):
-        if self.action == 'retrieve':
+        if self.action == 'retrieve': # Возвращаем детализированный сериализатор для метода retrieve (GET с указанием id)
             return UserDetailSerializer
         
         return UserSerializer
@@ -198,7 +198,17 @@ class UploadFileView(APIView):
 
         invalid_rows = []
 
+        existing_items = set(CollectibleItem.objects.values_list('name', 'uid'))
+
         for row in sheet.iter_rows(min_row=2, values_only=True):
+            name, uid = row[0], row[1]
+
+            # Проверяем на дубликат
+            if (name, uid) in existing_items:
+                invalid_rows.append(list(row))
+                continue
+
+
             data = {
                 'name': row[0],
                 'uid': row[1],
@@ -211,6 +221,8 @@ class UploadFileView(APIView):
             serializer = CollectibleItemSerializer(data=data)
             if serializer.is_valid():
                 serializer.save()
+                # Добавляем в множество, чтобы не загружать дубликаты из файла
+                existing_items.add((name, uid))
             else:
                 invalid_rows.append(list(row))
 
