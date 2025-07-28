@@ -11,6 +11,7 @@ class Run(models.Model):
                       ('in_progress', 'In Progress'),
                       ('finished', 'Finished')
                       ]
+
     status = models.CharField(max_length=20, choices=status_choices, default='init')
     distance = models.FloatField(null=True, blank=True, default=0.0)
     run_time_seconds = models.IntegerField(null=True, blank=True)
