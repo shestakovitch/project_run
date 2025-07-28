@@ -8,7 +8,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     # Если не поставить read_only=True, DRF подумает, что это поле должно приходить в теле запроса при
     # создании/обновлении — и может вызвать ошибку вроде: "runs_finished" is a required field.
-    runs_finished = serializers.SerializerMethodField(read_only=True)
+    runs_finished = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = User
