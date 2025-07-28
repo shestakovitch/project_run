@@ -10,7 +10,7 @@ from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.views import APIView
 from geopy.distance import geodesic
-from django.db.models import Sum, Min, Max
+from django.db.models import Sum, Min, Max, Count, Q
 import openpyxl
 from rest_framework.exceptions import PermissionDenied
 
@@ -67,6 +67,8 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
             qs = qs.filter(is_staff=True)
         elif user_type == 'athlete':
             qs = qs.filter(is_staff=False)
+
+        qs = qs.annotate(run_finished=Count('run_set', filter=Q(run_set_status='finished')))
 
         return qs
     
