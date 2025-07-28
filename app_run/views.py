@@ -68,6 +68,8 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
         elif user_type == 'athlete':
             qs = qs.filter(is_staff=False)
 
+        # Для решения проблемы N+1 вычисляем кол-во finished забегов здесь, а не в UserSerializer при помощи метода
+        # get_runs_finished
         qs = qs.annotate(runs_finished=Count('run', filter=Q(run__status='finished')))
 
         return qs
