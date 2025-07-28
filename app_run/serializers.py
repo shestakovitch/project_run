@@ -30,7 +30,7 @@ class RunSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Run
-        fields = ['id', 'created_at', 'comment', 'athlete', 'athlete_data', 'status', 'distance']
+        fields = ['id', 'created_at', 'comment', 'athlete', 'athlete_data', 'status', 'distance', 'run_time_seconds']
 
 
 class AthleteInfoSerializer(serializers.ModelSerializer):
@@ -48,9 +48,11 @@ class ChallengeSerializer(serializers.ModelSerializer):
 
 
 class PositionSerializer(serializers.ModelSerializer):
+    date_time = serializers.DateTimeField(format='%Y-%m-%dT%H:%M:%S.%f')
+
     class Meta:
         model = Position
-        fields = ['id', 'run', 'latitude', 'longitude']
+        fields = ['id', 'run', 'latitude', 'longitude', 'date_time']
 
     def validate_run(self, run):
         if run.status != 'in_progress':

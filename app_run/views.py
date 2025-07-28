@@ -103,7 +103,14 @@ class StopRunAPIView(APIView):
             for i in range(1, len(positions)):
                 total_distance += geodesic(positions[i - 1], positions[i]).km
 
+        time_range = positions.aggregate(start=Min('date_time'), finish=Max('date_time'))
+        run_time = 0
+
+        if time_range['start'] and time_range['finish']:
+            run_time = (time_range['finish'] - time_range['start']).total_seconds()
+
         run.distance = round(total_distance, 2)
+        run.run_time_seconds = int(run_time)
         run.status = 'finished'
         run.save()
 
