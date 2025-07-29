@@ -47,7 +47,6 @@ class RunViewSet(viewsets.ModelViewSet):
     ordering_fields = ['created_at']  # Поля по которым будет возможна сортировка
 
     def perform_create(self, serializer):
-        # Больше не проверяем авторизацию, просто сохраняем
         serializer.save()
 
 
