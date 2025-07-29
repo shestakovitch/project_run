@@ -9,7 +9,7 @@ from django.conf import settings
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.views import APIView
-from geopy.distance import geodesic, distance
+from geopy.distance import geodesic
 from django.db.models import Sum, Min, Max, Count, Q
 import openpyxl
 from django.utils import timezone
@@ -188,8 +188,8 @@ class PositionViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         data = serializer.validated_data
         run = data['run']
-        latitude = data['latitude']
-        longitude = data['longitude']
+        latitude = float(data['latitude'])
+        longitude = float(data['longitude'])
         date_time = data['date_time']
 
         prev = Position.objects.filter(run=run, date_time__lt=date_time).order_by('-date_time').first()
@@ -206,14 +206,7 @@ class PositionViewSet(viewsets.ModelViewSet):
             speed = 0.0
             distance = 0.0
 
-        position = Position.objects.create(
-            run=run,
-            latitude=latitude,
-            longitude=longitude,
-            date_time=date_time,
-            speed=round(speed, 2),
-            distance=round(distance, 2)
-        )
+        position = serializer.save(speed=round(speed, 2), distance=round(distance, 2))
 
         check_and_collect_items(position)
 
