@@ -186,32 +186,29 @@ class PositionViewSet(viewsets.ModelViewSet):
         return self.queryset
 
     def perform_create(self, serializer):
-        run = serializer.validated_data['run']
-        latitude = serializer.validated_data['latitude']
-        longitude = serializer.validated_data['longitude']
-        date_time = serializer.validated_data['date_time'] or timezone.now()
-
-        speed = 0.0
-        distance = 0.0
+        position = serializer.save()
+        run = position.run
 
         # Получаем все предыдущие позиции этого забега, отсортированные по времени
         prev = Position.objects.filter(run=run).order_by('date_time').last()
 
         if prev:
             prev_point = (prev.latitude, prev.longitude)
-            curr_point = (latitude, longitude)
+            curr_point = (position.latitude, position.longitude)
 
-            segment_distance = geodesic(prev_point, curr_point).km # Расстояние между предыдущей и текущей позицией (в км)
-            time_delta = (date_time - prev.date_time).total_seconds() # Время между позициями (в секундах)
+            segment_distance = geodesic(prev_point,
+                                        curr_point).km  # Расстояние между предыдущей и текущей позицией (в км)
+            time_delta = (position.date_time - prev.date_time).total_seconds()  # Время между позициями (в секундах)
+            speed = segment_distance * 1000 / time_delta if time_delta > 0 else 0.0  # Скорость (м/с)
 
-            speed = segment_distance * 1000 / time_delta if time_delta > 0 else 0.0 # Скорость (м/с)
-            distance = prev.distance + segment_distance
+            position.distance = prev.distance + segment_distance
+            position.speed = speed
         else:
             # Для первой точки
-            distance = 0.0
-            speed = 0.0
+            position.distance = 0.0
+            position.speed = 0.0
 
-        position = serializer.save(speed=speed, distance=distance)
+        position.save()
         check_and_collect_items(position)
 
 
