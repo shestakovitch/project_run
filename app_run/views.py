@@ -185,8 +185,10 @@ class PositionViewSet(viewsets.ModelViewSet):
         return self.queryset
 
     def perform_create(self, serializer):
-        position = serializer.save()
-        run = position.run
+        run = serializer.validated_data['run']
+        latitude = serializer.validated_data['latitude']
+        longitude = serializer.validated_data['longitude']
+        date_time = serializer.validated_data['date_time']
 
         # Получаем все предыдущие позиции этого забега, отсортированные по времени
         previous_positions = Position.objects.filter(run=run).order_by('date_time')
@@ -194,20 +196,19 @@ class PositionViewSet(viewsets.ModelViewSet):
         if previous_positions.count() > 1:
             prev = previous_positions[previous_positions.count() - 2]
             prev_point = (prev.latitude, prev.longitude)
-            curr_point = (position.latitude, position.longitude)
+            curr_point = (latitude, longitude)
 
             segment_distance = geodesic(prev_point, curr_point).km # Расстояние между предыдущей и текущей позицией (в км)
-            time_delta = (position.date_time - prev.date_time).total_seconds() # Время между позициями (в секундах)
+            time_delta = (date_time - prev.date_time).total_seconds() # Время между позициями (в секундах)
             speed = segment_distance * 1000 / time_delta if time_delta > 0 else 0.0 # Скорость (м/с)
 
-            position.distance = prev.distance + segment_distance
-            position.speed = speed
+            distance = prev.distance + segment_distance
         else:
             # Для первой точки
-            position.distance = 0.0
-            position.speed = 0.0
+            distance = 0.0
+            speed = 0.0
 
-        position.save()
+        position = serializer.save(speed=speed, distance=distance)
         check_and_collect_items(position)
 
 
