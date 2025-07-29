@@ -190,7 +190,7 @@ class PositionViewSet(viewsets.ModelViewSet):
         run = position.run
 
         # Получаем все предыдущие позиции этого забега, отсортированные по времени
-        prev = Position.objects.filter(run=run).order_by('date_time').last()
+        prev = Position.objects.filter(run=run).order_by('--date_time').first()
 
         if prev:
             prev_point = (prev.latitude, prev.longitude)
