@@ -12,6 +12,7 @@ from rest_framework.views import APIView
 from geopy.distance import geodesic
 from django.db.models import Sum, Min, Max, Count, Q
 import openpyxl
+from django.utils import timezone
 
 from .models import Run, User, AthleteInfo, Challenge, Position, CollectibleItem
 from .serializers import RunSerializer, UserSerializer, AthleteInfoSerializer, ChallengeSerializer, PositionSerializer, \
@@ -188,7 +189,7 @@ class PositionViewSet(viewsets.ModelViewSet):
         run = serializer.validated_data['run']
         latitude = serializer.validated_data['latitude']
         longitude = serializer.validated_data['longitude']
-        date_time = serializer.validated_data['date_time']
+        date_time = serializer.validated_data['date_time'] or timezone.now()
 
         # Получаем все предыдущие позиции этого забега, отсортированные по времени
         prev = Position.objects.filter(run=run).order_by('date_time').last()
