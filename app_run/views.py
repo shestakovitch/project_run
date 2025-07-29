@@ -1,3 +1,4 @@
+from turtle import pos
 from django.contrib.auth import authenticate
 from django.core.serializers import serialize
 from rest_framework import viewsets, status
@@ -120,6 +121,7 @@ class StopRunAPIView(APIView):
 
         run.save() # Сохраняем
 
+        # Челленджи
         finished_count = Run.objects.filter(athlete=run.athlete, status='finished').count()
 
         if finished_count == 10:
@@ -185,6 +187,28 @@ class PositionViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         position = serializer.save()
+        run = position.run
+
+        # Получаем все предыдущие позиции этого забега, отсортированные по времени
+        previous_positions = Position.objects.filter(run=run).order_by('date_time')
+
+        if previous_positions.count() > 1:
+            prev = previous_positions[previous_positions.count() - 2]
+            prev_point = (prev.latitude, prev.longitude)
+            curr_point = (position.latitude, position.longitude)
+
+            segment_distance = geodesic(prev_point, curr_point).km # Расстояние между предыдущей и текущей позицией (в км)
+            time_delta = (position.date_time - prev.date_time).total_seconds() # Время между позициями (в секундах)
+            speed = segment_distance * 1000 / time_delta if time_delta > 0 else 0.0 # Скорость (м/с)
+
+            position.distance = prev.distance + segment_distance
+            position.speed = speed
+        else:
+            # Для первой точки
+            position.distance = 0.0
+            position.speed = 0.0
+
+        position.save()
         check_and_collect_items(position)
 
 
