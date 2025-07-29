@@ -186,29 +186,35 @@ class PositionViewSet(viewsets.ModelViewSet):
         return self.queryset
 
     def perform_create(self, serializer):
-        position = serializer.save()
-        run = position.run
+        data = serializer.validated_data
+        run = data['run']
+        latitude = data['latitude']
+        longitude = data['longitude']
+        date_time = data['date_time']
 
-        # Получаем все предыдущие позиции этого забега, отсортированные по времени
-        prev = Position.objects.filter(run=run).order_by('--date_time').first()
+        prev = Position.objects.filter(run=run, date_time__lt=date_time).order_by('-date_time').first()
 
         if prev:
             prev_point = (prev.latitude, prev.longitude)
-            curr_point = (position.latitude, position.longitude)
+            curr_point = (latitude, longitude)
 
-            segment_distance = geodesic(prev_point,
-                                        curr_point).km  # Расстояние между предыдущей и текущей позицией (в км)
-            time_delta = (position.date_time - prev.date_time).total_seconds()  # Время между позициями (в секундах)
-            speed = segment_distance * 1000 / time_delta if time_delta > 0 else 0.0  # Скорость (м/с)
-
-            position.distance = prev.distance + segment_distance
-            position.speed = speed
+            segment_distance = geodesic(prev_point, curr_point).km
+            time_delta = (date_time - prev.date_time).total_seconds()
+            speed = segment_distance * 1000 / time_delta if time_delta > 0 else 0.0
+            distance = prev.distance + segment_distance
         else:
-            # Для первой точки
-            position.distance = 0.0
-            position.speed = 0.0
+            speed = 0.0
+            distance = 0.0
 
-        position.save()
+        position = Position.objects.create(
+            run=run,
+            latitude=latitude,
+            longitude=longitude,
+            date_time=date_time,
+            speed=round(speed, 2),
+            distance=round(distance, 2)
+        )
+
         check_and_collect_items(position)
 
 
