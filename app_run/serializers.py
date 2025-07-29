@@ -4,7 +4,7 @@ from .models import Run, User, AthleteInfo, Challenge, Position, CollectibleItem
 
 
 class UserSerializer(serializers.ModelSerializer):
-    type = serializers.SerializerMethodField()
+    type = serializers.SerializerMethodField()  # Так мы задаем вычисляемое поле
 
     # Если не поставить read_only=True, DRF подумает, что это поле должно приходить в теле запроса при
     # создании/обновлении — и может вызвать ошибку вроде: "runs_finished" is a required field.
@@ -12,9 +12,11 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id', 'date_joined', 'username', 'last_name', 'first_name', 'type', 'runs_finished']
+        fields = ['id', 'date_joined', 'username', 'last_name', 'first_name',
+                  'type', # Добавляем поля, которых нет в модели. type вычисляем через get_type
+                  'runs_finished']  # runs_finished вычисляем во UserViewSet, чтобы избежать проблемы N+1
 
-    def get_type(self, obj):
+    def get_type(self, obj):  # Определяем метод, который вычисляет значение поля
         return 'coach' if obj.is_staff else 'athlete'
 
 
@@ -76,11 +78,11 @@ class PositionSerializer(serializers.ModelSerializer):
 class CollectibleItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = CollectibleItem
-        fields = ['id', 'name', 'uid', 'latitude','longitude', 'picture', 'value']
+        fields = ['id', 'name', 'uid', 'latitude', 'longitude', 'picture', 'value']
 
 
-class UserDetailSerializer(UserSerializer): # Наследуемся от Базового сериализатора
-    items = CollectibleItemSerializer(source='collected_items', many=True) # Новое поле
+class UserDetailSerializer(UserSerializer):  # Наследуемся от Базового сериализатора
+    items = CollectibleItemSerializer(source='collected_items', many=True)  # Новое поле
 
-    class Meta(UserSerializer.Meta): # Наследуем настройки Meta из родительского сериализатора
-        fields = UserSerializer.Meta.fields + ['items'] # Так добавляются поля
+    class Meta(UserSerializer.Meta):  # Наследуем настройки Meta из родительского сериализатора
+        fields = UserSerializer.Meta.fields + ['items']  # Так добавляются поля

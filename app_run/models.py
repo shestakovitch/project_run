@@ -34,6 +34,7 @@ class Position(models.Model):
     longitude = models.DecimalField(max_digits=9, decimal_places=4)
     date_time = models.DateTimeField(null=True, blank=True)
     speed = models.FloatField(null=True, blank=True)
+    distance = models.FloatField(null=True, blank=True)
 
 
 class CollectibleItem(models.Model):

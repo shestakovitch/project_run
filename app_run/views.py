@@ -56,7 +56,7 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
     ordering_fields = ['date_joined']  # Поля по которым будет возможна сортировка
 
     def get_queryset(self):
-        qs = User.objects.filter(is_superuser=False)
+        qs = User.objects.filter(is_superuser=False) # Отфильтровываем superuser
         user_type = self.request.query_params.get('type')
 
         if user_type == 'coach':
