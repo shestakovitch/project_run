@@ -12,7 +12,6 @@ from rest_framework.views import APIView
 from geopy.distance import geodesic
 from django.db.models import Sum, Min, Max, Count, Q
 import openpyxl
-from rest_framework.exceptions import PermissionDenied
 
 from .models import Run, User, AthleteInfo, Challenge, Position, CollectibleItem
 from .serializers import RunSerializer, UserSerializer, AthleteInfoSerializer, ChallengeSerializer, PositionSerializer, \
@@ -113,6 +112,8 @@ class StopRunAPIView(APIView):
         run.run_time_seconds = int(run_time)
         run.status = 'finished'
         run.save()
+
+
 
         finished_count = Run.objects.filter(athlete=run.athlete, status='finished').count()
 
