@@ -13,7 +13,7 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'date_joined', 'username', 'last_name', 'first_name',
-                  'type', # Добавляем поля, которых нет в модели. type вычисляем через get_type
+                  'type',  # Добавляем поля, которых нет в модели. type вычисляем через get_type
                   'runs_finished']  # runs_finished вычисляем во UserViewSet, чтобы избежать проблемы N+1
 
     def get_type(self, obj):  # Определяем метод, который вычисляет значение поля
@@ -50,7 +50,8 @@ class ChallengeSerializer(serializers.ModelSerializer):
 
 
 class PositionSerializer(serializers.ModelSerializer):
-    date_time = serializers.DateTimeField(format='%Y-%m-%dT%H:%M:%S.%f')
+    date_time = serializers.DateTimeField(format='%Y-%m-%dT%H:%M:%S.%f',
+                                          input_formats=['%Y-%m-%dT%H:%M:%S.%f', '%Y-%m-%dT%H:%M:%S'])
 
     class Meta:
         model = Position
