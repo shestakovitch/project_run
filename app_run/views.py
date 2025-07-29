@@ -111,9 +111,14 @@ class StopRunAPIView(APIView):
         run.distance = round(total_distance, 2)
         run.run_time_seconds = int(run_time)
         run.status = 'finished'
-        run.save()
 
+        # Вычисляем среднюю скорость
+        if run_time > 0:
+            run.speed = round(total_distance * 1000 / run_time, 2) # Переводим в м/с
+        else:
+            run.speed = 0.0
 
+        run.save() # Сохраняем
 
         finished_count = Run.objects.filter(athlete=run.athlete, status='finished').count()
 
