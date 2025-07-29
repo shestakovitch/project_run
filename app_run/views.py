@@ -9,7 +9,7 @@ from django.conf import settings
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.views import APIView
-from geopy.distance import geodesic
+from geopy.distance import geodesic, distance
 from django.db.models import Sum, Min, Max, Count, Q
 import openpyxl
 from django.utils import timezone
@@ -190,6 +190,9 @@ class PositionViewSet(viewsets.ModelViewSet):
         latitude = serializer.validated_data['latitude']
         longitude = serializer.validated_data['longitude']
         date_time = serializer.validated_data['date_time'] or timezone.now()
+
+        speed = 0.0
+        distance = 0.0
 
         # Получаем все предыдущие позиции этого забега, отсортированные по времени
         prev = Position.objects.filter(run=run).order_by('date_time').last()
