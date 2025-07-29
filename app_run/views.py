@@ -1,4 +1,3 @@
-from turtle import pos
 from django.contrib.auth import authenticate
 from django.core.serializers import serialize
 from rest_framework import viewsets, status
