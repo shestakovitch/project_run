@@ -191,17 +191,16 @@ class PositionViewSet(viewsets.ModelViewSet):
         date_time = serializer.validated_data['date_time']
 
         # Получаем все предыдущие позиции этого забега, отсортированные по времени
-        previous_positions = Position.objects.filter(run=run).order_by('date_time')
+        prev = Position.objects.filter(run=run).order_by('date_time').last()
 
-        if previous_positions.count() > 1:
-            prev = previous_positions[previous_positions.count() - 2]
+        if prev:
             prev_point = (prev.latitude, prev.longitude)
             curr_point = (latitude, longitude)
 
             segment_distance = geodesic(prev_point, curr_point).km # Расстояние между предыдущей и текущей позицией (в км)
             time_delta = (date_time - prev.date_time).total_seconds() # Время между позициями (в секундах)
-            speed = segment_distance * 1000 / time_delta if time_delta > 0 else 0.0 # Скорость (м/с)
 
+            speed = segment_distance * 1000 / time_delta if time_delta > 0 else 0.0 # Скорость (м/с)
             distance = prev.distance + segment_distance
         else:
             # Для первой точки
