@@ -142,7 +142,7 @@ class StopRunAPIView(APIView):
             run.distance = round(total_distance, 2)
             run.run_time_seconds = int(total_time)
             # Средняя скорость всех позиций
-            avg_speed = round(sum(speeds) / len(speeds), 2) if speeds else 0.0
+            avg_speed = round((total_distance * 1000) / total_time, 2) if total_time > 0 else 0.0
             run.speed = avg_speed
 
         run.status = 'finished'
