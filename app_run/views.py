@@ -56,7 +56,7 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
     ordering_fields = ['date_joined']  # Поля по которым будет возможна сортировка
 
     def get_queryset(self):
-        qs = User.objects.filter(is_superuser=False) # Отфильтровываем superuser
+        qs = User.objects.filter(is_superuser=False)  # Отфильтровываем superuser
         user_type = self.request.query_params.get('type')
 
         if user_type == 'coach':
@@ -69,11 +69,11 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
         qs = qs.annotate(runs_finished=Count('run', filter=Q(run__status='finished')))
 
         return qs
-    
+
     def get_serializer_class(self):
-        if self.action == 'retrieve': # Возвращаем детализированный сериализатор для метода retrieve (GET с указанием id)
+        if self.action == 'retrieve':  # Возвращаем детализированный сериализатор для метода retrieve (GET с указанием id)
             return UserDetailSerializer
-        
+
         return UserSerializer
 
 
@@ -100,7 +100,10 @@ class StopRunAPIView(APIView):
         total_distance = 0.0
 
         for i in range(1, len(positions)):
-            total_distance += geodesic(positions[i - 1], positions[i]).km
+            prev_pos = positions[i - 1]
+            curr_pos = positions[i]
+            total_distance += geodesic((prev_pos.latitude, prev_pos.longitude),
+                                       (curr_pos.latitude, curr_pos.longitude)).km
 
         run_time = 0
 
@@ -115,11 +118,11 @@ class StopRunAPIView(APIView):
 
         # Вычисляем среднюю скорость
         if run_time > 0:
-            run.speed = round(total_distance * 1000 / run_time, 2) # Переводим в м/с
+            run.speed = round(total_distance * 1000 / run_time, 2)  # Переводим в м/с
         else:
             run.speed = 0.0
 
-        run.save() # Сохраняем
+        run.save()  # Сохраняем
 
         # Челленджи
         finished_count = Run.objects.filter(athlete=run.athlete, status='finished').count()
