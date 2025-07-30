@@ -112,26 +112,20 @@ class StopRunAPIView(APIView):
             prev = positions[i - 1]
             curr = positions[i]
 
-            # расстояние между позициями в км
             dist_km = geodesic(
                 (prev.latitude, prev.longitude),
                 (curr.latitude, curr.longitude)
             ).km
             total_distance += dist_km
 
-            # время между позициями в секундах
             delta_time = (curr.date_time - prev.date_time).total_seconds()
-            if delta_time > 0:
-                speed = round(dist_km * 1000 / delta_time, 2)  # м/с
-            else:
-                speed = 0.0
+            speed = round(dist_km * 1000 / delta_time, 2) if delta_time > 0 else 0.0
 
             curr.speed = speed
-            speeds.append(speed)
             curr.distance = round(total_distance, 2)
             curr.save()
+            speeds.append(speed)
 
-        # Общее время забега
         total_time = (positions[-1].date_time - positions[0].date_time).total_seconds()
 
         if total_time <= 0:
@@ -141,9 +135,7 @@ class StopRunAPIView(APIView):
         else:
             run.distance = round(total_distance, 2)
             run.run_time_seconds = int(total_time)
-            # Средняя скорость всех позиций
-            avg_speed = round((total_distance * 1000) / total_time, 2) if total_time > 0 else 0.0
-            run.speed = avg_speed
+            run.speed = round((total_distance * 1000) / total_time, 2)
 
         run.status = 'finished'
         run.save()
