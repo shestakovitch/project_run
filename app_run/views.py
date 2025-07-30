@@ -96,31 +96,31 @@ class StopRunAPIView(APIView):
         if run.status in ('init', 'finished'):
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
-        positions = Position.objects.filter(run=run).values_list('latitude', 'longitude')
+        positions = list(Position.objects.filter(run=run).order_by('date_time'))
+
         total_distance = 0.0
+        run_time = 0
 
         if len(positions) >= 2:
             for i in range(1, len(positions)):
-                total_distance += geodesic(positions[i - 1], positions[i]).km
+                coord1 = (positions[i - 1].latitude, positions[i - 1].longitude)
+                coord2 = (positions[i].latitude, positions[i].longitude)
+                total_distance += geodesic(coord1, coord2).km
 
-        time_range = positions.aggregate(start=Min('date_time'), finish=Max('date_time'))
-        run_time = 0
+            start_time = positions[0].date_time
+            end_time = positions[-1].date_time
+            run_time = (end_time - start_time).total_seconds()
 
-        if time_range['start'] and time_range['finish']:
-            run_time = (time_range['finish'] - time_range['start']).total_seconds()
-
-        run.distance = total_distance
+        run.distance = round(total_distance, 2)
         run.run_time_seconds = int(run_time)
         run.status = 'finished'
 
-        # Вычисляем среднюю скорость
         if run_time > 0:
-            run.speed = round(total_distance * 1000 / run_time, 2) # Переводим в м/с
+            run.speed = round(total_distance * 1000 / run_time, 2)  # м/с
         else:
             run.speed = 0.0
 
-        run.distance = round(total_distance, 2)
-        run.save() # Сохраняем
+        run.save()
 
         # Челленджи
         finished_count = Run.objects.filter(athlete=run.athlete, status='finished').count()
