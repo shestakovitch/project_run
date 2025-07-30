@@ -133,12 +133,14 @@ class StopRunAPIView(APIView):
             total_distance += dist_km
             total_time += delta_time if delta_time > 0 else 0
 
-            speed = round((dist_km * 1000) / delta_time, 2) if delta_time > 0 else 0.0
-            speeds.append(speed)
+            raw_speed = (dist_km * 1000) / delta_time if delta_time > 0 else 0.0
+            rounded_speed = round(raw_speed, 2)
 
             curr.distance = round(total_distance, 2)
-            curr.speed = speed
+            curr.speed = rounded_speed
             curr.save()
+
+            speeds.append(rounded_speed)
 
         run.distance = round(total_distance, 2)
         run.run_time_seconds = int(total_time)
