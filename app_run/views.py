@@ -98,7 +98,7 @@ class StopRunAPIView(APIView):
 
         positions = Position.objects.filter(run=run).order_by('date_time')
 
-        if positions.count >= 2:
+        if positions.count() >= 2:
             total_time = positions.last().date_time - positions.first().date_time
 
             if total_time > 0:
