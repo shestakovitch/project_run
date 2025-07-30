@@ -98,31 +98,36 @@ class StopRunAPIView(APIView):
 
         positions = list(Position.objects.filter(run=run).order_by('date_time'))
         total_distance = 0.0
+        total_time = 0.0
 
         for i in range(1, len(positions)):
             prev_pos = positions[i - 1]
             curr_pos = positions[i]
-            total_distance += geodesic((prev_pos.latitude, prev_pos.longitude),
-                                       (curr_pos.latitude, curr_pos.longitude)).km
 
-        run_time = 0
+            # Расстояние между соседними позициями в километрах
+            dist_km = geodesic(
+                (prev_pos.latitude, prev_pos.longitude),
+                (curr_pos.latitude, curr_pos.longitude)
+            ).km
+            total_distance += dist_km
 
-        if positions:
-            start_time = positions[0].date_time
-            end_time = positions[-1].date_time
-            run_time = (end_time - start_time).total_seconds()
+            # Интервал времени между позициями в секундах
+            delta_seconds = (curr_pos.date_time - prev_pos.date_time).total_seconds()
+            total_time += delta_seconds
 
-        run.distance = round(total_distance, 2)
-        run.run_time_seconds = int(run_time)
-        run.status = 'finished'
-
-        # Вычисляем среднюю скорость
-        if run_time > 0:
-            run.speed = round(total_distance * 1000 / run_time, 2)  # Переводим в м/с
-        else:
+        # Если позиций мало или время нулевое — ставим нули
+        if total_time <= 0 or len(positions) < 2:
+            run.distance = 0.0
+            run.run_time_seconds = 0
             run.speed = 0.0
+        else:
+            run.distance = round(total_distance, 2)
+            run.run_time_seconds = int(total_time)
+            # Средняя скорость в м/с (перевод км в м: *1000)
+            run.speed = round(total_distance * 1000 / total_time, 2)
 
-        run.save()  # Сохраняем
+        run.status = 'finished'
+        run.save()
 
         # Челленджи
         finished_count = Run.objects.filter(athlete=run.athlete, status='finished').count()
