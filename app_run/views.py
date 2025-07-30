@@ -96,62 +96,22 @@ class StopRunAPIView(APIView):
         if run.status in ('init', 'finished'):
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
-        positions = list(Position.objects.filter(run=run).order_by('date_time'))
+        positions = Position.objects.filter(run=run).order_by('date_time')
 
-        if len(positions) < 2:
-            for pos in positions:
-                pos.speed = 0.0
-                pos.distance = 0.0
-                pos.save()
-            run.distance = 0.0
-            run.run_time_seconds = 0
-            run.speed = 0.0
-            run.status = 'finished'
-            run.save()
-            return Response(RunSerializer(run).data)
+        if positions.count >= 2:
+            total_time = positions.last().date_time - positions.first().date_time
 
-        total_distance = 0.0
-        total_time = 0.0
-        speeds = []
-
-        # Первая позиция — distance=0, speed=0
-        positions[0].distance = 0.0
-        positions[0].speed = 0.0
-        positions[0].save()
-
-        for i in range(1, len(positions)):
-            prev = positions[i - 1]
-            curr = positions[i]
-
-            dist_km = geodesic(
-                (prev.latitude, prev.longitude),
-                (curr.latitude, curr.longitude)
-            ).km
-
-            delta_time = (curr.date_time - prev.date_time).total_seconds()
-
-            total_distance += dist_km
-            total_time += delta_time if delta_time > 0 else 0
-
-            raw_speed = (dist_km * 1000) / delta_time if delta_time > 0 else 0.0
-            rounded_speed = round(raw_speed, 2)
-
-            curr.distance = round(total_distance, 2)
-            curr.speed = rounded_speed
-            curr.save()
-
-            speeds.append(rounded_speed)
-
-        run.distance = round(total_distance, 2)
-        run.run_time_seconds = int(total_time)
-
-        # Средняя скорость — среднее всех speed позиций
-        if speeds:
-            avg_speed = round(sum(speeds) / len(speeds), 2)
+            if total_time > 0:
+                run.run_time_seconds = int(total_time)
+                avg_speed = positions.aggregate(avg_speed=Avg('speed'))['avg_speed']
+                run.speed = round(avg_speed, 2) if avg_speed else 0.0
+            else:
+                run.run_time_seconds = 0.0
+                run.speed = 0.0
         else:
-            avg_speed = 0.0
+            run.run_time_seconds = 0.0
+            run.speed = 0.0
 
-        run.speed = avg_speed
         run.status = 'finished'
         run.save()
 
