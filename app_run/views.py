@@ -96,49 +96,31 @@ class StopRunAPIView(APIView):
         if run.status in ('init', 'finished'):
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
-        positions = list(Position.objects.filter(run=run).order_by('date_time'))
-        if len(positions) < 2:
-            run.distance = 0.0
-            run.run_time_seconds = 0
-            run.speed = 0.0
-            run.status = 'finished'
-            run.save()
-            return Response(RunSerializer(run).data)
+        positions = Position.objects.filter(run=run).values_list('latitude', 'longitude')
+        total_distance = 0.0
 
-        total_distance = 0.0  # в км
-        speeds = []
+        if len(positions) >= 2:
+            for i in range(1, len(positions)):
+                total_distance += geodesic(positions[i - 1], positions[i]).km
 
-        for i in range(1, len(positions)):
-            prev = positions[i - 1]
-            curr = positions[i]
+        time_range = positions.aggregate(start=Min('date_time'), finish=Max('date_time'))
+        run_time = 0
 
-            dist_km = geodesic(
-                (prev.latitude, prev.longitude),
-                (curr.latitude, curr.longitude)
-            ).km
-            total_distance += dist_km
+        if time_range['start'] and time_range['finish']:
+            run_time = (time_range['finish'] - time_range['start']).total_seconds()
 
-            delta_time = (curr.date_time - prev.date_time).total_seconds()
-            speed = round(dist_km * 1000 / delta_time, 2) if delta_time > 0 else 0.0
-
-            curr.speed = speed
-            curr.distance = round(total_distance, 2)
-            curr.save()
-            speeds.append(speed)
-
-        total_time = (positions[-1].date_time - positions[0].date_time).total_seconds()
-
-        if total_time <= 0:
-            run.distance = 0.0
-            run.run_time_seconds = 0
-            run.speed = 0.0
-        else:
-            run.distance = round(total_distance, 2)
-            run.run_time_seconds = int(total_time)
-            run.speed = round((total_distance * 1000) / total_time, 2)
-
+        run.distance = total_distance
+        run.run_time_seconds = int(run_time)
         run.status = 'finished'
-        run.save()
+
+        # Вычисляем среднюю скорость
+        if run_time > 0:
+            run.speed = round(total_distance * 1000 / run_time, 2) # Переводим в м/с
+        else:
+            run.speed = 0.0
+
+        run.distance = round(total_distance, 2)
+        run.save() # Сохраняем
 
         # Челленджи
         finished_count = Run.objects.filter(athlete=run.athlete, status='finished').count()
