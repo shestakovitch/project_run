@@ -10,9 +10,8 @@ from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.views import APIView
 from geopy.distance import geodesic
-from django.db.models import Sum, Min, Max, Count, Q
+from django.db.models import Sum, Count, Q, Avg
 import openpyxl
-from django.utils import timezone
 
 from .models import Run, User, AthleteInfo, Challenge, Position, CollectibleItem
 from .serializers import RunSerializer, UserSerializer, AthleteInfoSerializer, ChallengeSerializer, PositionSerializer, \
