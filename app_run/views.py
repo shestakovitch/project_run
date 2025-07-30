@@ -99,7 +99,7 @@ class StopRunAPIView(APIView):
         positions = Position.objects.filter(run=run).order_by('date_time')
 
         if positions.count() >= 2:
-            total_time = positions.last().date_time - positions.first().date_time
+            total_time = (positions.last().date_time - positions.first().date_time).total_seconds()
 
             if total_time > 0:
                 run.run_time_seconds = int(total_time)
