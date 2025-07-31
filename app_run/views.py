@@ -114,17 +114,24 @@ class StopRunAPIView(APIView):
         run.status = 'finished'
         run.save()
 
-        # Челленджи
+        # Челлендж Сделай 10 Забегов!
         finished_count = Run.objects.filter(athlete=run.athlete, status='finished').count()
 
         if finished_count == 10:
             Challenge.objects.get_or_create(athlete=run.athlete, full_name='Сделай 10 Забегов!')
 
+        # Челлендж Пробеги 50 километров!
         finished_km = Run.objects.filter(athlete=run.athlete, status='finished').aggregate(Sum('distance'))[
             'distance__sum']
 
         if finished_km >= 50:
             Challenge.objects.get_or_create(athlete=run.athlete, full_name='Пробеги 50 километров!')
+
+        # Челлендж 2 км за 10 минут
+        finished_run = Run.objects.filter(athlete=run.athlete, status='finished').order_by('-created_at').first()
+
+        if finished_run.distance >= 2 and finished_run.run_time_seconds <= 600:
+            Challenge.objects.get_or_create(athlete=run.athlete, full_name='Челлендж 2 км за 10 минут')
 
         return Response(RunSerializer(run).data, status=status.HTTP_200_OK)
 
