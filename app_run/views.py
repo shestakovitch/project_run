@@ -130,9 +130,9 @@ class StopRunAPIView(APIView):
         if finished_km >= 50:
             Challenge.objects.get_or_create(athlete=run.athlete, full_name='Пробеги 50 километров!')
 
-        # Челлендж 2 км за 10 минут
+        # Челлендж 2 километра за 10 минут
         if run.distance >= 2 and run.run_time_seconds <= 600:
-            Challenge.objects.get_or_create(athlete=run.athlete, full_name='2 км за 10 минут')
+            Challenge.objects.get_or_create(athlete=run.athlete, full_name='2 километра за 10 минут')
 
         return Response(RunSerializer(run).data, status=status.HTTP_200_OK)
 
