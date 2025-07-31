@@ -104,33 +104,30 @@ class StopRunAPIView(APIView):
                 run.run_time_seconds = int(total_time)
                 avg_speed = positions.aggregate(avg_speed=Avg('speed'))['avg_speed']
                 run.speed = round(avg_speed, 2) if avg_speed else 0.0
-                # run.distance = round(positions.last().distance, 2)
             else:
                 run.run_time_seconds = 0.0
                 run.speed = 0.0
-                # run.distance = 0.0
         else:
             run.run_time_seconds = 0.0
             run.speed = 0.0
-            # run.distance = 0.0
 
         run.status = 'finished'
         run.save()
 
-        # Челлендж Сделай 10 Забегов!
+        # Челлендж "Сделай 10 Забегов!"
         finished_count = Run.objects.filter(athlete=run.athlete, status='finished').count()
 
         if finished_count == 10:
             Challenge.objects.get_or_create(athlete=run.athlete, full_name='Сделай 10 Забегов!')
 
-        # Челлендж Пробеги 50 километров!
+        # Челлендж "Пробеги 50 километров!"
         finished_km = Run.objects.filter(athlete=run.athlete, status='finished').aggregate(Sum('distance'))[
             'distance__sum']
 
         if finished_km >= 50:
             Challenge.objects.get_or_create(athlete=run.athlete, full_name='Пробеги 50 километров!')
 
-        # Челлендж 2 километра за 10 минут
+        # Челлендж "2 километра за 10 минут!"
         if run.distance >= 2 and run.run_time_seconds <= 600:
             Challenge.objects.get_or_create(athlete=run.athlete, full_name='2 километра за 10 минут!')
 
@@ -209,16 +206,13 @@ class PositionViewSet(viewsets.ModelViewSet):
 
         position = serializer.save(speed=round(speed, 2), distance=round(distance, 2))
 
-        check_and_collect_items(position)
-
-
-def check_and_collect_items(position):
-    user = position.run.athlete
-    user_location = (position.latitude, position.longitude)
-    for item in CollectibleItem.objects.all():
-        item_location = (item.latitude, item.longitude)
-        if geodesic(user_location, item_location).meters <= 100:
-            item.collected_by.add(user)
+        # Проверяем есть ли CollectibleItem на расстоянии <= 100 метров
+        user = position.run.athlete
+        user_location = (position.latitude, position.longitude)
+        for item in CollectibleItem.objects.all():
+            item_location = (item.latitude, item.longitude)
+            if geodesic(user_location, item_location).meters <= 100:
+                item.collected_by.add(user)
 
 
 class CollectibleItemViewSet(viewsets.ModelViewSet):
