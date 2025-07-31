@@ -104,12 +104,15 @@ class StopRunAPIView(APIView):
                 run.run_time_seconds = int(total_time)
                 avg_speed = positions.aggregate(avg_speed=Avg('speed'))['avg_speed']
                 run.speed = round(avg_speed, 2) if avg_speed else 0.0
+                run.distance = round(positions.last().distance, 2)
             else:
                 run.run_time_seconds = 0.0
                 run.speed = 0.0
+                run.distance = 0.0
         else:
             run.run_time_seconds = 0.0
             run.speed = 0.0
+            run.distance = 0.0
 
         run.status = 'finished'
         run.save()
@@ -128,7 +131,6 @@ class StopRunAPIView(APIView):
             Challenge.objects.get_or_create(athlete=run.athlete, full_name='Пробеги 50 километров!')
 
         # Челлендж 2 км за 10 минут
-
         if run.distance >= 2 and run.run_time_seconds <= 600:
             Challenge.objects.get_or_create(athlete=run.athlete, full_name='Челлендж 2 км за 10 минут')
 
