@@ -275,8 +275,11 @@ class UploadFileView(APIView):
 
 class SubscribeAPIView(APIView):
     def post(self, request, *args, **kwargs):
-        athlete = User.objects.filter(id=request.data.get('athlete')).first()
-        coach = User.objects.filter(id=self.kwargs.get('id')).first()
+        athlete_id = request.data.get('athlete')
+        coach_id = self.kwargs.get('id')
+
+        athlete = get_object_or_404(User, id=athlete_id)
+        coach = get_object_or_404(User, id=coach_id)
 
         if not athlete:
             return Response(status=status.HTTP_400_BAD_REQUEST)
