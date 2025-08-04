@@ -275,7 +275,7 @@ class UploadFileView(APIView):
 
 class SubscribeAPIView(APIView):
     def post(self, request, *args, **kwargs):
-        athlete = User.objects.filter(id=request.data.get('athlete'), is_staff=False, is_superuser=False).first()
+        athlete = User.objects.filter(id=request.data.get('athlete')).first()
         coach = User.objects.filter(id=self.kwargs.get('id'), is_superuser=False).first()
 
         if not athlete:
