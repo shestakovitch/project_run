@@ -114,5 +114,5 @@ class CoachDetailSerializer(UserSerializer):
 
     def get_athletes(self, obj):
         subscribes = obj.subscribers.all()
-        athletes = [s.athlete.id for s in subscribes]
+        athletes = [subscribe.athlete.id for subscribe in subscribes]
         return athletes
