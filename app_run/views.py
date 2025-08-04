@@ -3,6 +3,7 @@ from django.core.serializers import serialize
 from rest_framework import viewsets, status
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.decorators import api_view
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 from django.conf import settings
@@ -270,18 +271,24 @@ class UploadFileView(APIView):
 
 
 class SubscribeAPIView(APIView):
+    permission_classes = [IsAuthenticated]  # Гарантирует, что пользователь аутентифицирован
+
     def post(self, request, id):
         athlete = request.user
+
+        if not athlete.is_authenticated:
+            return Response({'detail': "Authentication required"}, status=status.HTTP_401_UNAUTHORIZED)
+
         coach = get_object_or_404(User, id=id)
 
         if not coach.is_staff:
             return Response({'detail': "User isn't a coach!"}, status=status.HTTP_400_BAD_REQUEST)
 
         if athlete.is_staff:
-            return Response({'detail': "Only athletes can subscribe"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'detail': "Only athletes can subscribe!"}, status=status.HTTP_400_BAD_REQUEST)
 
         if Subscribe.objects.filter(athlete=athlete, coach=coach).exists():
-            return Response({'detail': "You are already subscribed to this coach"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'detail': "You are already subscribed to this coach!"}, status=status.HTTP_400_BAD_REQUEST)
 
         Subscribe.objects.create(athlete=athlete, coach=coach)
         return Response({'detail': 'Subscription successful'}, status=status.HTTP_200_OK)
