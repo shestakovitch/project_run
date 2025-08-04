@@ -101,7 +101,7 @@ class AthleteDetailSerializer(UserSerializer):
         fields = UserSerializer.Meta.fields + ['items', 'coach']
 
     def get_coach(self, obj):
-        subscribe = obj.coaches.last()
+        subscribe = obj.subscriptions.last()
         return subscribe.coach.id if subscribe else None
 
 
@@ -113,6 +113,6 @@ class CoachDetailSerializer(UserSerializer):
         fields = UserSerializer.Meta.fields + ['athletes']
 
     def get_athletes(self, obj):
-        subscribes = obj.athletes.all()
+        subscribes = obj.subscribers.all()
         athletes = [s.athlete.id for s in subscribes]
         return athletes
