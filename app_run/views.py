@@ -270,9 +270,9 @@ class UploadFileView(APIView):
 
 
 class SubscribeAPIView(APIView):
-    def post(self, request, run_id):
+    def post(self, request, id):
         athlete = request.user
-        coach = get_object_or_404(User, id=run_id)
+        coach = get_object_or_404(User, id=id)
 
         if not coach.is_staff:
             return Response({'detail': "User isn't a coach!"}, status=status.HTTP_400_BAD_REQUEST)
@@ -280,7 +280,7 @@ class SubscribeAPIView(APIView):
         if athlete.is_staff:
             return Response({'detail': "Only athletes can subscribe"}, status=status.HTTP_400_BAD_REQUEST)
 
-        if Subscribe.objects.filter(athlete=athlete, coach=coach).exist():
+        if Subscribe.objects.filter(athlete=athlete, coach=coach).exists():
             return Response({'detail': "You are already subscribed to this coach"}, status=status.HTTP_400_BAD_REQUEST)
 
         Subscribe.objects.create(athlete=athlete, coach=coach)
