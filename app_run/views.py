@@ -271,23 +271,21 @@ class UploadFileView(APIView):
 
 
 class SubscribeAPIView(APIView):
-    def post(self, request, id):
-        coach = get_object_or_404(User, id=id)
-        athlete_id = request.data.get('athlete')
+    def post(self, request, *args, **kwargs):
+        athlete = User.objects.filter(id=request.data.get('athlete')).first()
+        coach = User.odjects.filter(id=self.kwargs.get('id')).first()
 
-        if coach.user_type != 'coach':
-            return Response({'detail': 'Cannot subscribe to non-coach.'}, status=status.HTTP_400_BAD_REQUEST)
+        if not athlete:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
 
-        try:
-            athlete = User.objects.get(id=athlete_id)
-        except User.DoesNotExist:
-            return Response({'detail': 'Invalid athlete id.'}, status=status.HTTP_400_BAD_REQUEST)
+        if not coach:
+            return Response(status=status.HTTP_404_NOT_FOUND)
 
-        if athlete.user_type != 'athlete':
-            return Response({'detail': 'Only athletes can subscribe.'}, status=status.HTTP_400_BAD_REQUEST)
+        if not coach.is_staff:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
 
         if Subscribe.objects.filter(athlete=athlete, coach=coach).exists():
-            return Response({'detail': 'Already subscribed.'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(status=status.HTTP_400_BAD_REQUEST)
 
         Subscribe.objects.create(athlete=athlete, coach=coach)
-        return Response({'detail': 'Subscribed successfully.'}, status=status.HTTP_200_OK)
+        return Response(status=status.HTTP_200_OK)
