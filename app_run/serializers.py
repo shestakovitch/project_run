@@ -92,12 +92,11 @@ class UserDetailSerializer(UserSerializer):  # Наследуемся от Ба�
     class Meta(UserSerializer.Meta):  # Наследуем настройки Meta из родительского сериализатора
         fields = UserSerializer.Meta.fields + ['items', 'coach', 'athletes']  # Так добавляются поля
 
-    def get_coach(self, user):
-        if not user.is_staff:
-            subscription = user.subscriptions.first()
-            if subscription:
-                return subscription.coach.id
+    def get_coach(self, obj):
+        subscribe = obj.coaches.first()
+        return subscribe.coach.id if subscribe else None
 
-    def get_athletes(self, user):
-        if user.is_staff:
-            return list(user.subscriptions.values_list('athlete_id', flat=True))
+    def get_athletes(self, obj):
+        subscribes = obj.athletes.all()
+        athletes = [s.athlete.id for s in subscribes]
+        return athletes
