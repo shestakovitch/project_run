@@ -13,7 +13,7 @@ from geopy.distance import geodesic
 from django.db.models import Sum, Count, Q, Avg
 import openpyxl
 
-from .models import Run, User, AthleteInfo, Challenge, Position, CollectibleItem
+from .models import Run, User, AthleteInfo, Challenge, Position, CollectibleItem, Subscribe
 from .serializers import RunSerializer, UserSerializer, AthleteInfoSerializer, ChallengeSerializer, PositionSerializer, \
     CollectibleItemSerializer, UserDetailSerializer
 
@@ -267,3 +267,21 @@ class UploadFileView(APIView):
                 invalid_rows.append(list(row))
 
         return Response(invalid_rows, status=200)
+
+
+class SubscribeAPIView(APIView):
+    def post(self, request, run_id):
+        athlete = request.user
+        coach = get_object_or_404(User, id=run_id)
+
+        if not coach.is_staff:
+            return Response({'detail': "User isn't a coach!"}, status=status.HTTP_400_BAD_REQUEST)
+
+        if athlete.is_staff:
+            return Response({'detail': "Only athletes can subscribe"}, status=status.HTTP_400_BAD_REQUEST)
+
+        if Subscribe.objects.filter(athlete=athlete, coach=coach).exist():
+            return Response({'detail': "You are already subscribed to this coach"}, status=status.HTTP_400_BAD_REQUEST)
+
+        Subscribe.objects.create(athlete=athlete, coach=coach)
+        return Response({'detail': 'Subscription successful'}, status=status.HTTP_200_OK)

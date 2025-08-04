@@ -46,3 +46,11 @@ class CollectibleItem(models.Model):
     picture = models.URLField()
     value = models.IntegerField()
     collected_by = models.ManyToManyField(User, related_name='collected_items', blank=True)
+
+
+class Subscribe(models.Model):
+    athlete = models.ForeignKey(User, on_delete=models.CASCADE, related_name='subscriptions')
+    coach = models.ForeignKey(User, on_delete=models.CASCADE, related_name='subscribers')
+
+    class Meta:
+        unique_together = ('athlete', 'coach') # Эта конструкция запрещает дублирование подписок на уровне базы данных
