@@ -284,7 +284,7 @@ class SubscribeAPIView(APIView):
         if not coach.is_staff:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
-        if athlete.user_type != 'athlete':
+        if athlete.type != 'athlete':
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
         if Subscribe.objects.filter(athlete=athlete, coach=coach).exists():
