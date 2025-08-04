@@ -86,15 +86,31 @@ class CollectibleItemSerializer(serializers.ModelSerializer):
 
 class UserDetailSerializer(UserSerializer):  # Наследуемся от Базового сериализатора
     items = CollectibleItemSerializer(source='collected_items', many=True)  # Новое поле
-    coach = serializers.SerializerMethodField()
-    athletes = serializers.SerializerMethodField()
+
 
     class Meta(UserSerializer.Meta):  # Наследуем настройки Meta из родительского сериализатора
-        fields = UserSerializer.Meta.fields + ['items', 'coach', 'athletes']  # Так добавляются поля
+        fields = UserSerializer.Meta.fields + ['items']  # Так добавляются поля
+
+
+class AthleteDetailSerializer(UserSerializer):
+    items = CollectibleItemSerializer(read_only=True, many=True)
+    coach = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = UserSerializer.Meta.fields + ['items', 'coach']
 
     def get_coach(self, obj):
-        subscribe = obj.coaches.first()
+        subscribe = obj.coaches.last()
         return subscribe.coach.id if subscribe else None
+
+
+class CoachDetailSerializer(UserSerializer):
+    athletes = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = UserSerializer.Meta.fields + ['athletes']
 
     def get_athletes(self, obj):
         subscribes = obj.athletes.all()
