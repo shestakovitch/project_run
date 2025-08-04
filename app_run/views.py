@@ -16,7 +16,7 @@ import openpyxl
 
 from .models import Run, User, AthleteInfo, Challenge, Position, CollectibleItem, Subscribe
 from .serializers import RunSerializer, UserSerializer, AthleteInfoSerializer, ChallengeSerializer, PositionSerializer, \
-    CollectibleItemSerializer, UserDetailSerializer
+    CollectibleItemSerializer, UserDetailSerializer, AthleteDetailSerializer, CoachDetailSerializer
 
 
 @api_view(['GET'])
@@ -72,9 +72,12 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_serializer_class(self):
         if self.action == 'retrieve':  # Возвращаем детализированный сериализатор для метода retrieve (GET с указанием id)
-            return UserDetailSerializer
-
-        return UserSerializer
+            user = self.get_object()
+            if user.is_staff:
+                return CoachDetailSerializer
+            else:
+                return AthleteDetailSerializer
+        return UserDetailSerializer
 
 
 class StartRunAPIView(APIView):
