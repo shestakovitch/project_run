@@ -15,7 +15,7 @@ import openpyxl
 
 from .models import Run, User, AthleteInfo, Challenge, Position, CollectibleItem, Subscribe
 from .serializers import RunSerializer, UserSerializer, AthleteInfoSerializer, ChallengeSerializer, PositionSerializer, \
-    CollectibleItemSerializer, UserDetailSerializer, CoachDetailSerializer, AthleteDetailSerializer
+    CollectibleItemSerializer, UserDetailSerializer
 
 
 @api_view(['GET'])
