@@ -319,3 +319,5 @@ class ChallengesSummaryAPIView(APIView):
         return Response(result)
 
 
+class RateCoachAPIView(APIView):
+    pass
