@@ -322,6 +322,8 @@ class ChallengesSummaryAPIView(APIView):
 
 class RateCoachAPIView(APIView):
     def post(self, request, coach_id):
+        coach = get_object_or_404(User.objects.filter(is_staff=True), id=coach_id)
+
         athlete_id = request.data.get('athlete')
         rating_raw = request.data.get('rating')
 
@@ -336,7 +338,6 @@ class RateCoachAPIView(APIView):
         if not 1 <= rating <= 5:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
-        coach = get_object_or_404(User.objects.filter(is_staff=True), id=coach_id)
         athlete = get_object_or_404(User.objects.filter(is_staff=False), id=athlete_id)
 
         subscribe = Subscribe.objects.filter(coach=coach, athlete=athlete).first()
