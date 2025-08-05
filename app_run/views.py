@@ -13,6 +13,7 @@ from rest_framework.views import APIView
 from geopy.distance import geodesic
 from django.db.models import Sum, Count, Q, Avg
 import openpyxl
+from collections import defaultdict
 
 from .models import Run, User, AthleteInfo, Challenge, Position, CollectibleItem, Subscribe
 from .serializers import RunSerializer, UserSerializer, AthleteInfoSerializer, ChallengeSerializer, PositionSerializer, \
@@ -293,3 +294,28 @@ class SubscribeAPIView(APIView):
 
         Subscribe.objects.create(athlete=athlete, coach=coach)
         return Response(status=status.HTTP_200_OK)
+
+
+class ChallengesSummaryAPIView(APIView):
+    def get(self, request):
+        challenges = Challenge.objects.select_related('athlete')
+
+        summary = defaultdict(list)
+        for challenge in challenges:
+            athlete = challenge.athlete
+            summary[challenge.full_name].append({
+                'id': athlete.id,
+                'full_name': f'{athlete.first_name} {athlete.last_name}',
+                'username': athlete.username
+            })
+
+        result = []
+        for full_name, athletes in summary.items():
+            result.append({
+                'name_to_display': full_name,
+                'athletes': athletes
+            })
+
+        return Response(result)
+
+
