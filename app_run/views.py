@@ -323,9 +323,14 @@ class ChallengesSummaryAPIView(APIView):
 class RateCoachAPIView(APIView):
     def post(self, request, coach_id):
         athlete_id = request.data.get('athlete')
-        rating = request.data.get('rating')
+        rating_raw = request.data.get('rating')
 
-        if not athlete_id or not rating:
+        if not athlete_id or not rating_raw:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            rating = int(rating_raw)
+        except (TypeError, ValueError):
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
         if not 1 <= rating <= 5:
