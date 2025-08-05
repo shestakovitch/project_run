@@ -20,7 +20,8 @@ from django.conf.urls.static import static
 from django.conf import settings
 from rest_framework.routers import DefaultRouter
 from app_run.views import company_details, RunViewSet, UserViewSet, StartRunAPIView, StopRunAPIView, AthleteInfoAPIView, \
-    ChallengeAPIView, PositionViewSet, CollectibleItemViewSet, UploadFileView, SubscribeAPIView
+    ChallengeAPIView, PositionViewSet, CollectibleItemViewSet, UploadFileView, SubscribeAPIView, \
+    ChallengesSummaryAPIView
 
 router = DefaultRouter()
 router.register('api/runs', RunViewSet)
@@ -37,5 +38,6 @@ urlpatterns = [
     path('api/challenges/', ChallengeAPIView.as_view()),
     path('api/upload_file/', UploadFileView.as_view()),
     path('api/subscribe_to_coach/<int:id>/', SubscribeAPIView.as_view()),
+    path('api/challenges_summary/', ChallengesSummaryAPIView.as_view()),
     path('', include(router.urls)),  # Всегда последний!
 ]
