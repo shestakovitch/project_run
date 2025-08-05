@@ -115,6 +115,7 @@ class StopRunAPIView(APIView):
             run.run_time_seconds = 0.0
             run.speed = 0.0
 
+        run.distance = positions.last().distance if positions.exists() else 0.0
         run.status = 'finished'
         run.save()
 
