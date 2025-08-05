@@ -66,7 +66,8 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
 
         # Для решения проблемы N+1 вычисляем кол-во finished забегов здесь, а не в UserSerializer при помощи метода
         # get_runs_finished
-        qs = qs.annotate(runs_finished=Count('run', filter=Q(run__status='finished')))
+        qs = qs.annotate(runs_finished=Count('run', filter=Q(run__status='finished')),
+                         rating_avg=Avg('subscribers__rating'))
 
         return qs
 
@@ -275,9 +276,9 @@ class UploadFileView(APIView):
 
 
 class SubscribeAPIView(APIView):
-    def post(self, request, *args, **kwargs):
+    def post(self, request, **kwargs):
         athlete_id = request.data.get('athlete')
-        coach_id = self.kwargs.get('id')
+        coach_id = kwargs.get('id')
 
         athlete = get_object_or_404(User, id=athlete_id)
         coach = get_object_or_404(User, id=coach_id)
@@ -320,4 +321,24 @@ class ChallengesSummaryAPIView(APIView):
 
 
 class RateCoachAPIView(APIView):
-    pass
+    def post(self, request, coach_id):
+        athlete_id = request.data.get('athlete')
+        rating = request.data.get('rating')
+
+        if not athlete_id or not rating:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        if not 1 <= rating <= 5:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        coach = get_object_or_404(User.objects.filter(is_staff=True), id=coach_id)
+        athlete = get_object_or_404(User.objects.filter(is_staff=False), id=athlete_id)
+
+        subscribe = Subscribe.objects.filter(coach=coach, athlete=athlete).first()
+        if not subscribe:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        subscribe.rating = rating
+        subscribe.save()
+
+        return Response(status=status.HTTP_200_OK)

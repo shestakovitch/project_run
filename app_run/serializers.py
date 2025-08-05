@@ -9,15 +9,22 @@ class UserSerializer(serializers.ModelSerializer):
     # Если не поставить read_only=True, DRF подумает, что это поле должно приходить в теле запроса при
     # создании/обновлении — и может вызвать ошибку вроде: "runs_finished" is a required field.
     runs_finished = serializers.IntegerField(read_only=True)
+    rating = serializers.SerializerMethodField()
 
     class Meta:
         model = User
         fields = ['id', 'date_joined', 'username', 'last_name', 'first_name',
                   'type',  # Добавляем поля, которых нет в модели. type вычисляем через get_type
-                  'runs_finished']  # runs_finished вычисляем во UserViewSet, чтобы избежать проблемы N+1
+                  'runs_finished', # runs_finished вычисляем во UserViewSet, чтобы избежать проблемы N+1
+                  'rating']
 
     def get_type(self, obj):  # Определяем метод, который вычисляет значение поля
         return 'coach' if obj.is_staff else 'athlete'
+
+    def get_rating(self, obj):
+        if not obj.is_staff:
+            return None
+        return round(obj.rating_avg, 2) if obj.rating_avg is not None else None
 
 
 class AthleteSerializer(serializers.ModelSerializer):
