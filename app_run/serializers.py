@@ -22,9 +22,8 @@ class UserSerializer(serializers.ModelSerializer):
         return 'coach' if obj.is_staff else 'athlete'
 
     def get_rating(self, obj):
-        if not obj.is_staff:
-            return None
-        return round(obj.rating_avg, 2) if obj.rating_avg is not None else None
+        avg_rating = getattr(obj, 'rating', None)
+        return round(avg_rating, 2) if avg_rating is not None else None
 
 
 class AthleteSerializer(serializers.ModelSerializer):

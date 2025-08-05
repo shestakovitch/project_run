@@ -11,7 +11,7 @@ from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.views import APIView
 from geopy.distance import geodesic
-from django.db.models import Sum, Count, Q, Avg
+from django.db.models import Sum, Count, Q, Avg, Prefetch
 import openpyxl
 
 from .models import Run, User, AthleteInfo, Challenge, Position, CollectibleItem, Subscribe
@@ -61,13 +61,23 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
 
         if user_type == 'coach':
             qs = qs.filter(is_staff=True)
+            qs = qs.prefetch_related(
+                Prefetch(
+                    'subscribers',
+                    queryset=Subscribe.objects.select_related('athlete').only(
+                        'athlete__id', 'athlete__username', 'rating'
+                    )
+                )
+            )
         elif user_type == 'athlete':
             qs = qs.filter(is_staff=False)
 
         # Для решения проблемы N+1 вычисляем кол-во finished забегов здесь, а не в UserSerializer при помощи метода
         # get_runs_finished
-        qs = qs.annotate(runs_finished=Count('run', filter=Q(run__status='finished')),
-                         rating_avg=Avg('subscribers__rating'))
+        qs = qs.annotate(
+            runs_finished=Count('run', filter=Q(run__status='finished')),
+            rating=Avg('subscribers__rating', filter=Q(subscribers__rating__isnull=False))
+        )
 
         return qs
 
