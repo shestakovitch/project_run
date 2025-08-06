@@ -69,18 +69,9 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
         qs = qs.annotate(
             runs_finished=Count('run', filter=Q(run__status='finished')),
             rating=Avg('subscribers__rating', filter=Q(subscribers__rating__isnull=False))
-        ).prefetch_related('subscribers', 'subscriptions')
+        )
 
         return qs
-
-    def get_object(self):
-        """
-        Возвращает объект из аннотированного queryset, чтобы не терять оптимизации.
-        """
-        queryset = self.filter_queryset(self.get_queryset())
-        obj = get_object_or_404(queryset, pk=self.kwargs["pk"])
-        self.check_object_permissions(self.request, obj)
-        return obj
 
     def get_serializer_class(self):
         if self.action == 'retrieve':  # Возвращаем детализированный сериализатор для метода retrieve (GET с указанием id)
