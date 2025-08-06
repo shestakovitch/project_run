@@ -79,6 +79,8 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
             )
         ).only('id', 'username', 'first_name', 'last_name', 'date_joined', 'is_staff')
 
+        return qs
+
     def get_serializer_class(self):
         if self.action == 'retrieve':  # Возвращаем детализированный сериализатор для метода retrieve (GET с указанием id)
             user = self.get_object()
