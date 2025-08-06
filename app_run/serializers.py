@@ -1,6 +1,6 @@
 from dataclasses import field
 from rest_framework import serializers
-from .models import Run, User, AthleteInfo, Challenge, Position, CollectibleItem
+from .models import Run, User, AthleteInfo, Challenge, Position, CollectibleItem, Subscribe
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -116,7 +116,5 @@ class CoachDetailSerializer(UserSerializer):
 
     def get_athletes(self, obj):
         # Используем заранее предзагруженный атрибут, чтобы не делать запросы
-        subscribes = getattr(obj, 'prefetched_subscribers', None)
-        if subscribes is None:
-            subscribes = obj.subscribers.all().select_related('athlete')
-        return [subscribe.athlete.id for subscribe in subscribes]
+        athletes = Subscribe.objects.filter(coach=obj.id).values_list('athlete__id', flat=True)
+        return athletes
