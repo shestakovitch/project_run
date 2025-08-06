@@ -68,10 +68,16 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
         # get_runs_finished
         qs = qs.annotate(
             runs_finished=Count('run', filter=Q(run__status='finished')),
-            rating=Avg('subscribers__rating', filter=Q(subscribers__rating__isnull=False))
         )
 
-        return qs
+        # Используем prefetch_related с Prefetch для предзагрузки подписчиков с рейтингом
+        qs = qs.prefetch_related(
+            Prefetch(
+                'subscribers',
+                queryset=Subscribe.objects.filter(rating__isnull=False),
+                to_attr='prefetched_subscribers_with_rating'
+            )
+        ).only('id', 'username', 'first_name', 'last_name', 'date_joined', 'is_staff')
 
     def get_serializer_class(self):
         if self.action == 'retrieve':  # Возвращаем детализированный сериализатор для метода retrieve (GET с указанием id)
@@ -342,11 +348,9 @@ class RateCoachAPIView(APIView):
 
         athlete = get_object_or_404(User.objects.filter(is_staff=False), id=athlete_id)
 
-        subscribe = Subscribe.objects.filter(coach=coach, athlete=athlete).first()
-        if not subscribe:
+        # Обновляем рейтинг одним запросом
+        updated_count = Subscribe.objects.filter(coach=coach, athlete=athlete).update(rating=rating)
+        if updated_count == 0:
             return Response(status=status.HTTP_400_BAD_REQUEST)
-
-        subscribe.rating = rating
-        subscribe.save()
 
         return Response(status=status.HTTP_200_OK)
