@@ -67,7 +67,7 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
         # Для решения проблемы N+1 вычисляем кол-во finished забегов здесь, а не в UserSerializer при помощи метода
         # get_runs_finished
         qs = qs.annotate(runs_finished=Count('run', filter=Q(run__status='finished')))
-        qs = qs.annotate(rating=Avg('athletes__rating'))
+        qs = qs.annotate(rating=Avg('subscribers__rating'))
         return qs
 
     def get_serializer_class(self):
