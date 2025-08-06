@@ -55,3 +55,7 @@ class Subscribe(models.Model):
 
     class Meta:
         unique_together = ('athlete', 'coach') # Эта конструкция запрещает дублирование подписок на уровне базы данных
+        indexes = [
+            models.Index(fields=['athlete']),
+            models.Index(fields=['coach']),
+        ]
