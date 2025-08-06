@@ -68,13 +68,26 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
         # get_runs_finished
         qs = qs.annotate(
             runs_finished=Count('run', filter=Q(run__status='finished')),
-            rating=Avg('subscribers__rating', filter=Q(subscribers__rating__isnull=False))
+            rating=Avg('subscribers__rating', filter=Q(subscribers__rating__isnull=False)),
         )
 
-        qs = qs.prefetch_related(
+        # Оптимально: предзагружаем связанные объекты, если они используются в сериализаторах
+        # Для ForeignKey (coach, athlete) в Subscribe — используется select_related
+        subscription_prefetch = Prefetch(
             'subscriptions',
+            queryset=Subscribe.objects.select_related('coach').only('id', 'coach_id', 'athlete_id', 'rating'),
+            to_attr='prefetched_subscriptions'
+        )
+        subscriber_prefetch = Prefetch(
             'subscribers',
-        ).only('id', 'username', 'first_name', 'last_name', 'date_joined', 'is_staff')
+            queryset=Subscribe.objects.select_related('athlete').only('id', 'coach_id', 'athlete_id', 'rating'),
+            to_attr='prefetched_subscribers'
+        )
+
+        qs = qs.prefetch_related(subscription_prefetch, subscriber_prefetch)
+
+        # Ограничиваем поля User для экономии памяти
+        qs = qs.only('id', 'username', 'first_name', 'last_name', 'date_joined', 'is_staff')
 
         return qs
 
