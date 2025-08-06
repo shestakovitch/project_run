@@ -68,8 +68,8 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
         # get_runs_finished
         qs = qs.annotate(
             runs_finished=Count('run', filter=Q(run__status='finished')),
-            rating=Avg('subscribers__rating', filter=Q(subscribers__rating__isnull=False))
-        )
+            rating=Avg('subscribers__rating', filter=Q(subscribers__rating__isnull=False))).prefetch_related(
+            'subscribers', 'subscriptions')
 
         return qs
 
