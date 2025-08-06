@@ -115,7 +115,8 @@ class CoachDetailSerializer(UserSerializer):
         fields = UserSerializer.Meta.fields + ['athletes']
 
     def get_athletes(self, obj):
-        # Используем заранее подгруженные подписки
-        subscribes = getattr(obj, 'prefetched_subscribers', obj.subscribers.all())
-        athletes = [subscribe.athlete.id for subscribe in subscribes]
-        return athletes
+        # Используем заранее предзагруженный атрибут, чтобы не делать запросы
+        subscribes = getattr(obj, 'prefetched_subscribers', None)
+        if subscribes is None:
+            subscribes = obj.subscribers.all().select_related('athlete')
+        return [subscribe.athlete.id for subscribe in subscribes]
