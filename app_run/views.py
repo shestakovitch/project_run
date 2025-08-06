@@ -68,15 +68,12 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
         # get_runs_finished
         qs = qs.annotate(
             runs_finished=Count('run', filter=Q(run__status='finished')),
+            rating=Avg('subscribers__rating', filter=Q(subscribers__rating__isnull=False))
         )
 
-        # Используем prefetch_related с Prefetch для предзагрузки подписчиков с рейтингом
         qs = qs.prefetch_related(
-            Prefetch(
-                'subscribers',
-                queryset=Subscribe.objects.filter(rating__isnull=False),
-                to_attr='prefetched_subscribers_with_rating'
-            )
+            'subscriptions',
+            'subscribers',
         ).only('id', 'username', 'first_name', 'last_name', 'date_joined', 'is_staff')
 
         return qs
