@@ -71,6 +71,8 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
         return qs
 
     def get_serializer_class(self):
+        if self.action == 'list': ##
+            return UserSerializer ##
         if self.action == 'retrieve':  # Возвращаем детализированный сериализатор для метода retrieve (GET с указанием id)
             user = self.get_object()
             if user.is_staff:
