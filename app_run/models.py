@@ -51,7 +51,7 @@ class CollectibleItem(models.Model):
 class Subscribe(models.Model):
     athlete = models.ForeignKey(User, on_delete=models.CASCADE, related_name='subscriptions')
     coach = models.ForeignKey(User, on_delete=models.CASCADE, related_name='subscribers')
-    rating = models.IntegerField(null=True, blank=True)
+    rating = models.FloatField(null=True, blank=True)
 
     class Meta:
         unique_together = ('athlete', 'coach') # Эта конструкция запрещает дублирование подписок на уровне базы данных
