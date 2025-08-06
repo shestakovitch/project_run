@@ -66,31 +66,8 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
 
         # Для решения проблемы N+1 вычисляем кол-во finished забегов здесь, а не в UserSerializer при помощи метода
         # get_runs_finished
-        # Аннотация вычисляемых полей: количество finished забегов и средний рейтинг
-        qs = qs.annotate(
-            runs_finished=Count('run', filter=Q(run__status='finished')),
-            rating=Avg('subscribers__rating', filter=Q(subscribers__rating__isnull=False)),
-        )
-        # Предзагрузка подписок и подписчиков с select_related для ForeignKey
-        subscription_prefetch = Prefetch(
-            'subscriptions',
-            queryset=Subscribe.objects.select_related('coach', 'athlete')
-            .only('id', 'coach_id', 'athlete_id', 'rating'),
-            to_attr='prefetched_subscriptions'
-        )
-        subscriber_prefetch = Prefetch(
-            'subscribers',
-            queryset=Subscribe.objects.select_related('coach', 'athlete')
-            .only('id', 'coach_id', 'athlete_id', 'rating'),
-            to_attr='prefetched_subscribers'
-        )
-        # Обязательно предзагружаем связанные коллекции, чтобы избежать N+1 в сериализаторах
-        qs = qs.prefetch_related(subscription_prefetch, subscriber_prefetch)
-        # Предзагрузить collected_items для UserDetailSerializer, чтобы избежать лишних запросов в detail
-        if self.action == 'retrieve':
-            qs = qs.prefetch_related('collected_items')
-        # Ограничиваем поля User, учитывая, что сериализаторы используют именно эти данные
-        qs = qs.only('id', 'username', 'first_name', 'last_name', 'date_joined', 'is_staff')
+        qs = qs.annotate(runs_finished=Count('run', filter=Q(run__status='finished')))
+        qs = qs.annotate(rating=Avg('athletes__rating'))
         return qs
 
     def get_serializer_class(self):
