@@ -298,9 +298,9 @@ class UploadFileView(APIView):
 
 
 class SubscribeAPIView(APIView):
-    def post(self, request, **kwargs):
+    def post(self, request, id):
         athlete_id = request.data.get('athlete')
-        coach_id = kwargs.get('id')
+        coach_id = id
 
         athlete = get_object_or_404(User, id=athlete_id)
         coach = get_object_or_404(User, id=coach_id)
