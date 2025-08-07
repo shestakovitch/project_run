@@ -54,4 +54,4 @@ class Subscription(models.Model):
     rating = models.FloatField(null=True, blank=True)
 
     class Meta:
-        unique_together = ('athlete', 'coach') # Эта конструкция запрещает дублирование подписок на уровне базы данных
+        unique_together = ('athlete', 'coach')  # Эта конструкция запрещает дублирование подписок на уровне базы данных

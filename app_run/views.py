@@ -1,9 +1,6 @@
-from django.contrib.auth import authenticate
-from django.core.serializers import serialize
 from rest_framework import viewsets, status
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.decorators import api_view
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 from django.conf import settings
@@ -11,7 +8,7 @@ from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.views import APIView
 from geopy.distance import geodesic
-from django.db.models import Sum, Count, Q, Avg, Max, Min
+from django.db.models import Sum, Count, Q, Avg, Max
 import openpyxl
 
 from .models import Run, User, AthleteInfo, Challenge, Position, CollectibleItem, Subscription
@@ -363,12 +360,12 @@ class CoachAnalyticsAPIView(APIView):
         longest_run_value = longest_run_qs.max_distance  # Дистанция самого длинного забега
 
         total_run_qs = qs.order_by('-sum_distance').first()
-        total_run_user =  total_run_qs.athlete_id # Id Бегуна, который пробежал в сумме больше всех у этого Тренера
+        total_run_user = total_run_qs.athlete_id  # Id Бегуна, который пробежал в сумме больше всех у этого Тренера
         total_run_value = total_run_qs.sum_distance  # Дистанция которую в сумме пробежал этот Бегун
 
         speed_avg_qs = qs.order_by('-avg_speed').first()
         speed_avg_user = speed_avg_qs.athlete_id  # Id Бегуна который в среднем бежал быстрее всех
-        speed_avg_value = speed_avg_qs.avg_speed # Средняя скорость этого Бегуна
+        speed_avg_value = speed_avg_qs.avg_speed  # Средняя скорость этого Бегуна
 
         return Response({'longest_run_user': longest_run_user,
                          'longest_run_value': longest_run_value,
