@@ -11,7 +11,7 @@ from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.views import APIView
 from geopy.distance import geodesic
-from django.db.models import Sum, Count, Q, Avg
+from django.db.models import Sum, Count, Q, Avg, Max, Min
 import openpyxl
 
 from .models import Run, User, AthleteInfo, Challenge, Position, CollectibleItem, Subscription
@@ -348,6 +348,32 @@ class RateCoachAPIView(APIView):
 
         return Response(status=status.HTTP_200_OK)
 
+
 class CoachAnalyticsAPIView(APIView):
     def get(self, request, coach_id):
-        pass
+        coach_qs = Subscription.objects.filter(coach=coach_id)
+
+        qs = coach_qs.annotate(max_distance=Max('athlete__run__distance'),
+                               sum_distance=Sum('athlete__run__distance'),
+                               avg_speed=Avg('athlete__run__speed')
+                               )
+
+        longest_run_qs = qs.order_by('-max_distance').first()
+        longest_run_user = longest_run_qs.athlete_id  # Id Бегуна, который сделал самый длинный забег у этого Тренера
+        longest_run_value = longest_run_qs.max_distance  # Дистанция самого длинного забега
+
+        total_run_qs = qs.order_by('-sum_distance').first()
+        total_run_user =  total_run_qs.athlete_id # Id Бегуна, который пробежал в сумме больше всех у этого Тренера
+        total_run_value = total_run_qs.sum_distance  # Дистанция которую в сумме пробежал этот Бегун
+
+        speed_avg_qs = qs.order_by('-avg_speed').first()
+        speed_avg_user = speed_avg_qs.athlete_id  # Id Бегуна который в среднем бежал быстрее всех
+        speed_avg_value = speed_avg_qs.avg_speed # Средняя скорость этого Бегуна
+
+        return Response({'longest_run_user': longest_run_user,
+                         'longest_run_value': longest_run_value,
+                         'total_run_user': total_run_user,
+                         'total_run_value': total_run_value,
+                         'speed_avg_user': speed_avg_user,
+                         'speed_avg_value': speed_avg_value,
+                         })
