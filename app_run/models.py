@@ -48,7 +48,7 @@ class CollectibleItem(models.Model):
     collected_by = models.ManyToManyField(User, related_name='collected_items', blank=True)
 
 
-class Subscribe(models.Model):
+class Subscription(models.Model):
     athlete = models.ForeignKey(User, on_delete=models.CASCADE, related_name='subscriptions')
     coach = models.ForeignKey(User, on_delete=models.CASCADE, related_name='subscribers')
     rating = models.FloatField(null=True, blank=True)

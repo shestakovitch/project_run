@@ -11,10 +11,10 @@ from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.views import APIView
 from geopy.distance import geodesic
-from django.db.models import Sum, Count, Q, Avg, Prefetch
+from django.db.models import Sum, Count, Q, Avg
 import openpyxl
 
-from .models import Run, User, AthleteInfo, Challenge, Position, CollectibleItem, Subscribe
+from .models import Run, User, AthleteInfo, Challenge, Position, CollectibleItem, Subscription
 from .serializers import RunSerializer, UserSerializer, AthleteInfoSerializer, ChallengeSerializer, PositionSerializer, \
     CollectibleItemSerializer, UserDetailSerializer, AthleteDetailSerializer, CoachDetailSerializer
 
@@ -71,8 +71,8 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
         return qs
 
     def get_serializer_class(self):
-        if self.action == 'list': ##
-            return UserSerializer ##
+        if self.action == 'list':  # Также в запросе на api/users нужно добавить поле rating (тип float) как для list так и для detail
+            return UserSerializer
         if self.action == 'retrieve':  # Возвращаем детализированный сериализатор для метода retrieve (GET с указанием id)
             user = self.get_object()
             if user.is_staff:
@@ -276,7 +276,7 @@ class UploadFileView(APIView):
         return Response(invalid_rows, status=200)
 
 
-class SubscribeAPIView(APIView):
+class SubscriptionAPIView(APIView):
     def post(self, request, id):
         athlete_id = request.data.get('athlete')
         coach_id = id
@@ -291,10 +291,10 @@ class SubscribeAPIView(APIView):
         if not coach.is_staff:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
-        if Subscribe.objects.filter(athlete=athlete, coach=coach).exists():
+        if Subscription.objects.filter(athlete=athlete, coach=coach).exists():
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
-        Subscribe.objects.create(athlete=athlete, coach=coach)
+        Subscription.objects.create(athlete=athlete, coach=coach)
         return Response(status=status.HTTP_200_OK)
 
 
@@ -342,8 +342,12 @@ class RateCoachAPIView(APIView):
         athlete = get_object_or_404(User.objects.filter(is_staff=False), id=athlete_id)
 
         # Обновляем рейтинг одним запросом
-        updated_count = Subscribe.objects.filter(coach=coach, athlete=athlete).update(rating=rating)
+        updated_count = Subscription.objects.filter(coach=coach, athlete=athlete).update(rating=rating)
         if updated_count == 0:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
         return Response(status=status.HTTP_200_OK)
+
+class CoachAnalyticsAPIView(APIView):
+    def get(self, request, coach_id):
+        pass
